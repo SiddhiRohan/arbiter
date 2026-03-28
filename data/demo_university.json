@@ -1,0 +1,92 @@
+{
+  "tenant_id": "demo_university",
+  "data_source": "Mock Student Information System",
+  "last_updated": "2026-03-01T00:00:00Z",
+
+  "persons": [
+    {
+      "person_id": "P001",
+      "name": "Alex Rivera",
+      "role": "Student",
+      "email": "arivera@university.edu",
+      "ssn": "123-45-6789",
+      "phone": "404-555-0101",
+      "major": "Computer Science",
+      "year": "Sophomore"
+    },
+    {
+      "person_id": "P002",
+      "name": "Sarah Chen",
+      "role": "Teacher",
+      "email": "schen@university.edu",
+      "ssn": "987-65-4321",
+      "phone": "404-555-0201",
+      "department": "Computer Science"
+    },
+    {
+      "person_id": "P003",
+      "name": "Robert Torres",
+      "role": "Admin",
+      "email": "rtorres@university.edu",
+      "ssn": "456-78-9012",
+      "phone": "404-555-0301",
+      "title": "Dean of Students"
+    }
+  ],
+
+  "financial_information": [
+    {
+      "person_id": "P001",
+      "type": "tuition",
+      "amount_due": 18500,
+      "amount_paid": 12000,
+      "balance": 6500,
+      "scholarship": "Merit Scholarship - $8000",
+      "status": "Active"
+    },
+    {
+      "person_id": "P002",
+      "type": "salary",
+      "annual_salary": 95000,
+      "pay_frequency": "Biweekly",
+      "benefits": "Health + 401k",
+      "status": "Active"
+    },
+    {
+      "person_id": "P003",
+      "type": "salary",
+      "annual_salary": 145000,
+      "pay_frequency": "Biweekly",
+      "benefits": "Executive Health + Pension",
+      "status": "Active"
+    }
+  ],
+
+  "grades": [
+    { "student_id": "P001", "class_id": "CS101", "midterm": 88, "final": 91, "grade": "B+", "attendance_rate": 0.92 },
+    { "student_id": "P001", "class_id": "MATH201", "midterm": 72, "final": 68, "grade": "C", "attendance_rate": 0.78 }
+  ],
+
+  "classes": [
+    {
+      "class_id": "CS101",
+      "name": "Intro to Computer Science",
+      "teacher_id": "P002",
+      "teacher_name": "Sarah Chen",
+      "credits": 3,
+      "schedule": "MWF 9:00-9:50 AM",
+      "room": "Tech Hall 201",
+      "enrolled_students": ["P001"]
+    },
+    {
+      "class_id": "MATH201",
+      "name": "Calculus II",
+      "teacher_id": "P002",
+      "teacher_name": "Sarah Chen",
+      "credits": 4,
+      "schedule": "TTh 10:30-12:00 PM",
+      "room": "Science Bldg 305",
+      "enrolled_students": ["P001"]
+    }
+  ]
+}

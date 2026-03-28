@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbiter -- Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117; --surface: #161b22; --surface2: #1c2333;
+    --border: #2a3144; --text: #e6edf3; --text-dim: #8b949e; --text-muted: #545d68;
+    --accent: #00e5c7; --accent-dim: rgba(0,229,199,0.1); --accent-border: rgba(0,229,199,0.2);
+    --green: #3fb950; --green-bg: rgba(63,185,80,0.1);
+    --orange: #d29922; --orange-bg: rgba(210,153,34,0.1);
+    --red: #f85149; --red-bg: rgba(248,81,73,0.1);
+    --purple: #bc8cff; --purple-bg: rgba(188,140,255,0.08);
+    --blue: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  .topbar {
+    display: flex; align-items: center; padding: 14px 24px;
+    border-bottom: 1px solid var(--border); background: var(--surface); gap: 14px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar .logo { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .topbar .logo span { color: var(--accent); }
+  .topbar .spacer { flex: 1; }
+  .topbar-link {
+    font-size: 12px; font-weight: 600; padding: 7px 14px; background: transparent;
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .topbar-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 24px; }
+  .tab {
+    padding: 12px 20px; font-size: 13px; font-weight: 600; color: var(--text-dim);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+    background: none; border-top: none; border-left: none; border-right: none; font-family: inherit;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CONTENT */
+  .content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 16px; font-weight: 700; }
+  .card-subtitle { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ROLE CARDS */
+  .roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .role-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
+  .role-card:hover { border-color: var(--accent-border); }
+  .role-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .role-clearance {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 12px;
+  }
+  .clearance-full { background: var(--green-bg); color: var(--green); border: 1px solid rgba(63,185,80,0.2); }
+  .clearance-dept { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(210,153,34,0.2); }
+  .clearance-self { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(188,140,255,0.2); }
+  .role-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .role-resources { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .resource-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px;
+    background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border);
+    border-radius: 4px;
+  }
+  .role-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .btn-sm {
+    font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: transparent;
+    color: var(--text-dim); transition: all 0.2s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-weight: 600; color: var(--text-dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: var(--surface2); }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .badge-sm {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px;
+    border-radius: 4px; display: inline-block;
+  }
+  .badge-allow { background: var(--green-bg); color: var(--green); }
+  .badge-partial { background: var(--orange-bg); color: var(--orange); }
+  .badge-deny { background: var(--red-bg); color: var(--red); }
+
+  /* FORMS */
+  .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-field { flex: 1; min-width: 200px; }
+  .form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; }
+  .form-field input, .form-field select {
+    width: 100%; padding: 10px 14px; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: inherit; font-size: 13px; outline: none;
+  }
+  .form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+  .form-field select option { background: var(--surface2); color: var(--text); }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); margin: 4px 0; }
+  .checkbox-row input[type="checkbox"] { accent-color: var(--accent); }
+  .btn-primary {
+    padding: 10px 20px; background: var(--accent); color: #0e1117; font-family: inherit;
+    font-size: 13px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    padding: 10px 20px; background: transparent; color: var(--text-dim); font-family: inherit;
+    font-size: 13px; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+  }
+  .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    position: fixed; right: 0; top: 0; width: 480px; height: 100vh;
+    background: var(--surface); border-left: 1px solid var(--border);
+    z-index: 200; transform: translateX(100%); transition: transform 0.3s ease;
+    overflow-y: auto; padding: 24px;
+  }
+  .detail-panel.open { transform: translateX(0); }
+  .detail-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199;
+    display: none;
+  }
+  .detail-overlay.open { display: block; }
+  .detail-close {
+    font-size: 24px; background: none; border: none; color: var(--text-dim);
+    cursor: pointer; float: right; line-height: 1;
+  }
+  .detail-close:hover { color: var(--text); }
+  .json-block {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 1.6; overflow-x: auto; white-space: pre-wrap; color: var(--text-dim);
+    max-height: 70vh;
+  }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+  .refresh-btn { margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Arbiter <span>Admin</span></div>
+  <div class="spacer"></div>
+  <a href="/" class="topbar-link">Chat UI</a>
+  <a href="/docs" class="topbar-link" target="_blank">API Docs</a>
+  <a href="/health" class="topbar-link" target="_blank">Health</a>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-panel="roles">Roles</button>
+  <button class="tab" data-panel="policies">Policies</button>
+  <button class="tab" data-panel="audit">Audit Log</button>
+  <button class="tab" data-panel="packets">Context Packets</button>
+  <button class="tab" data-panel="resources">Resources</button>
+</div>
+
+<div class="content">
+  <!-- ROLES PANEL -->
+  <div class="panel active" id="panel-roles">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Role Management</div>
+        <div class="card-subtitle">Create, edit, and delete roles. Changes take effect immediately.</div>
+      </div>
+      <button class="btn-primary" onclick="showCreateRole()">+ New Role</button>
+    </div>
+    <div id="roles-grid" class="roles-grid"></div>
+
+    <!-- Create/Edit Role Form (hidden by default) -->
+    <div id="role-form" class="card" style="display:none;">
+      <div class="card-title" id="role-form-title">Create New Role</div>
+      <div style="margin-top:16px;">
+        <div class="form-row">
+          <div class="form-field"><label>Role Name</label><input id="rf-name" placeholder="e.g. Auditor"></div>
+          <div class="form-field"><label>Clearance Level</label><input id="rf-clearance" placeholder="e.g. Read-Only"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Description</label><input id="rf-desc" placeholder="What this role does"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Allowed Resources</label>
+            <div style="margin-top:6px;">
+              <label class="checkbox-row"><input type="checkbox" id="rf-res-persons" checked> persons</label>
+              <label class="checkbox-row"><input type="checkbox" id="rf-res-financial"> financial_information</label>
+              <label class="checkbox-row"><input type="checkbox" id="rf-res-grades"> grades</label>
+              <label class="checkbox-row"><input type="checkbox" id="rf-res-classes" checked> classes</label>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Permissions</label>
+            <div style="margin-top:6px;">
+              <label class="checkbox-row"><input type="checkbox" id="rf-grades"> Can view grades</label>
+              <label class="checkbox-row"><input type="checkbox" id="rf-others-fin"> Can view others' financial data</label>
+              <label class="checkbox-row"><input type="checkbox" id="rf-own-fin"> Financial scope: own only</label>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn-primary" onclick="saveRole()">Save Role</button>
+          <button class="btn-secondary" onclick="hideRoleForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLICIES PANEL -->
+  <div class="panel" id="panel-policies">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Institution Policies</div>
+        <div class="card-subtitle">Global rules that apply across all roles.</div>
+      </div>
+      <button class="btn-secondary" onclick="loadPolicies()">Refresh</button>
+    </div>
+    <div id="policies-content"></div>
+  </div>
+
+  <!-- AUDIT LOG PANEL -->
+  <div class="panel" id="panel-audit">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Audit Log</div>
+        <div class="card-subtitle">Every ICCP-governed request is logged here.</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="loadAudit()">Refresh</button>
+        <a href="/audit-log-file" class="btn-secondary" download style="text-decoration:none;">Download .jsonl</a>
+      </div>
+    </div>
+    <div id="audit-stats" class="stats-row"></div>
+    <div class="card"><div class="table-wrap"><table id="audit-table"><thead></thead><tbody></tbody></table></div></div>
+  </div>
+
+  <!-- CONTEXT PACKETS PANEL -->
+  <div class="panel" id="panel-packets">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Context Packets (CCP v2.0)</div>
+        <div class="card-subtitle">Full governance record for each LLM invocation.</div>
+      </div>
+      <button class="btn-secondary" onclick="loadPackets()">Refresh</button>
+    </div>
+    <div class="card"><div class="table-wrap"><table id="packets-table"><thead></thead><tbody></tbody></table></div></div>
+  </div>
+
+  <!-- RESOURCES PANEL -->
+  <div class="panel" id="panel-resources">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Resource Descriptors</div>
+        <div class="card-subtitle">Registered data sources with sensitivity and TTL settings.</div>
+      </div>
+    </div>
+    <div id="resources-content"></div>
+  </div>
+</div>
+
+<!-- Detail side panel -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detail-panel">
+  <button class="detail-close" onclick="closeDetail()">x</button>
+  <div id="detail-content"></div>
+</div>
+
+<script>
+const API = window.location.origin;
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    if (tab.dataset.panel === 'roles') loadRoles();
+    if (tab.dataset.panel === 'policies') loadPolicies();
+    if (tab.dataset.panel === 'audit') loadAudit();
+    if (tab.dataset.panel === 'packets') loadPackets();
+    if (tab.dataset.panel === 'resources') loadResources();
+  });
+});
+
+// ============ ROLES ============
+async function loadRoles() {
+  const res = await fetch(`${API}/admin/roles`);
+  const data = await res.json();
+  const grid = document.getElementById('roles-grid');
+  grid.innerHTML = '';
+
+  for (const [name, cfg] of Object.entries(data.roles)) {
+    const clearClass = cfg.clearance.includes('Full') ? 'clearance-full' :
+                       cfg.clearance.includes('Department') ? 'clearance-dept' : 'clearance-self';
+    const resources = (cfg.allowed_resources || []).map(r => `<span class="resource-tag">${esc(r)}</span>`).join('');
+    grid.innerHTML += `
+      <div class="role-card">
+        <div class="role-name">${esc(name)}</div>
+        <span class="role-clearance ${clearClass}">${esc(cfg.clearance)}</span>
+        <div class="role-desc">${esc(cfg.description || '')}</div>
+        <div class="role-resources">${resources}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+          Grades: ${cfg.can_view_grades ? 'Yes' : 'No'} |
+          Others fin: ${cfg.can_view_others_financial ? 'Yes' : 'No'} |
+          Fin scope: ${cfg.financial_scope || 'N/A'}
+        </div>
+        <div class="role-actions">
+          <button class="btn-sm danger" onclick="deleteRole('${esc(name)}')">Delete</button>
+        </div>
+      </div>`;
+  }
+}
+
+function showCreateRole() {
+  document.getElementById('role-form').style.display = 'block';
+  document.getElementById('role-form-title').textContent = 'Create New Role';
+  document.getElementById('rf-name').value = '';
+  document.getElementById('rf-clearance').value = '';
+  document.getElementById('rf-desc').value = '';
+}
+
+function hideRoleForm() {
+  document.getElementById('role-form').style.display = 'none';
+}
+
+async function saveRole() {
+  const resources = [];
+  if (document.getElementById('rf-res-persons').checked) resources.push('persons');
+  if (document.getElementById('rf-res-financial').checked) resources.push('financial_information');
+  if (document.getElementById('rf-res-grades').checked) resources.push('grades');
+  if (document.getElementById('rf-res-classes').checked) resources.push('classes');
+
+  const body = {
+    role_name: document.getElementById('rf-name').value.trim(),
+    clearance: document.getElementById('rf-clearance').value.trim(),
+    description: document.getElementById('rf-desc').value.trim(),
+    allowed_resources: resources,
+    can_view_grades: document.getElementById('rf-grades').checked,
+    can_view_others_financial: document.getElementById('rf-others-fin').checked,
+    financial_scope: document.getElementById('rf-own-fin').checked ? 'own_only' : null,
+  };
+
+  if (!body.role_name || !body.clearance) { alert('Role name and clearance are required.'); return; }
+
+  await fetch(`${API}/admin/roles`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+  });
+  hideRoleForm();
+  loadRoles();
+}
+
+async function deleteRole(name) {
+  if (!confirm(`Delete role "${name}"?`)) return;
+  await fetch(`${API}/admin/roles/${name}`, { method: 'DELETE' });
+  loadRoles();
+}
+
+// ============ POLICIES ============
+async function loadPolicies() {
+  const res = await fetch(`${API}/admin/policies`);
+  const data = await res.json();
+  const el = document.getElementById('policies-content');
+
+  const inst = data.policies.institution_rules;
+  const prohibited = (inst.prohibited_access || []).map(p =>
+    `<tr><td>${esc(p.role)}</td><td class="mono">${esc(p.resource)}</td><td>${esc(p.reason)}</td></tr>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">Always Masked Fields</div>
+      <div style="margin-top:8px;display:flex;gap:6px;">
+        ${(inst.always_mask || []).map(f => `<span class="resource-tag">${esc(f)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">PII Fields</div>
+      <div style="margin-top:8px;display:flex;gap:6px;">
+        ${(inst.pii_fields || []).map(f => `<span class="resource-tag">${esc(f)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Prohibited Access Rules</div>
+      <div class="table-wrap" style="margin-top:8px;">
+        <table><thead><tr><th>Role</th><th>Resource</th><th>Reason</th></tr></thead>
+        <tbody>${prohibited}</tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Model Configuration</div>
+      <div class="json-block">${JSON.stringify(data.policies.model_config, null, 2)}</div>
+    </div>
+  `;
+}
+
+// ============ AUDIT LOG ============
+async function loadAudit() {
+  const res = await fetch(`${API}/audit-log`);
+  const data = await res.json();
+  const entries = data.entries || [];
+
+  // Stats
+  const stats = document.getElementById('audit-stats');
+  const total = entries.length;
+  const full = entries.filter(e => e.policy_decision === 'ALLOW_FULL').length;
+  const partial = entries.filter(e => e.policy_decision === 'ALLOW_PARTIAL').length;
+  const denied = entries.filter(e => e.policy_decision === 'DENY').length;
+
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">Total Requests</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--green)">${full}</div><div class="stat-label">Full Access</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--orange)">${partial}</div><div class="stat-label">Partial Access</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--red)">${denied}</div><div class="stat-label">Denied</div></div>
+  `;
+
+  // Table
+  const thead = document.querySelector('#audit-table thead');
+  const tbody = document.querySelector('#audit-table tbody');
+  thead.innerHTML = '<tr><th>Trace</th><th>Time</th><th>User</th><th>Role</th><th>Decision</th><th>Accessed</th><th>Denied</th><th></th></tr>';
+  tbody.innerHTML = '';
+
+  entries.reverse().forEach(e => {
+    const badge = e.policy_decision === 'ALLOW_FULL' ? 'badge-allow' :
+                  e.policy_decision === 'DENY' ? 'badge-deny' : 'badge-partial';
+    const time = new Date(e.timestamp).toLocaleTimeString();
+    tbody.innerHTML += `<tr>
+      <td class="mono">${esc(e.trace_id)}</td>
+      <td>${time}</td>
+      <td>${esc(e.user_id)}</td>
+      <td>${esc(e.role)}</td>
+      <td><span class="badge-sm ${badge}">${esc(e.policy_decision)}</span></td>
+      <td class="mono" style="font-size:10px">${(e.resources_accessed||[]).join(', ')}</td>
+      <td class="mono" style="font-size:10px;color:var(--red)">${(e.resources_denied||[]).join(', ') || '-'}</td>
+      <td><button class="btn-sm" onclick="showAuditDetail('${esc(e.trace_id)}')">View</button></td>
+    </tr>`;
+  });
+
+  if (entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No audit entries yet. Make some chat requests first.</td></tr>';
+  }
+}
+
+async function showAuditDetail(traceId) {
+  const res = await fetch(`${API}/audit-log/${traceId}`);
+  if (!res.ok) { alert('Entry not found'); return; }
+  const data = await res.json();
+  openDetail(`
+    <h3 style="margin-bottom:16px;">Audit Entry: ${esc(traceId)}</h3>
+    <div class="json-block">${JSON.stringify(data, null, 2)}</div>
+  `);
+}
+
+// ============ CONTEXT PACKETS ============
+async function loadPackets() {
+  const res = await fetch(`${API}/context-packets`);
+  const data = await res.json();
+  const packets = data.packets || [];
+
+  const thead = document.querySelector('#packets-table thead');
+  const tbody = document.querySelector('#packets-table tbody');
+  thead.innerHTML = '<tr><th>Trace</th><th>Time</th><th>Tenant</th><th>User</th><th>Role</th><th>Decision</th><th></th></tr>';
+  tbody.innerHTML = '';
+
+  packets.forEach(p => {
+    const badge = p.decision === 'ALLOW_FULL' ? 'badge-allow' :
+                  p.decision === 'DENY' ? 'badge-deny' : 'badge-partial';
+    const time = p.timestamp ? new Date(p.timestamp).toLocaleTimeString() : '-';
+    tbody.innerHTML += `<tr>
+      <td class="mono">${esc(p.trace_id)}</td>
+      <td>${time}</td>
+      <td>${esc(p.tenant || '-')}</td>
+      <td>${esc(p.user_id || '-')}</td>
+      <td>${esc(p.role || '-')}</td>
+      <td><span class="badge-sm ${badge}">${esc(p.decision)}</span></td>
+      <td><button class="btn-sm" onclick="showPacketDetail('${esc(p.trace_id)}')">Inspect</button></td>
+    </tr>`;
+  });
+
+  if (packets.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No context packets yet.</td></tr>';
+  }
+}
+
+async function showPacketDetail(traceId) {
+  const res = await fetch(`${API}/context-packet/${traceId}`);
+  if (!res.ok) { alert('Packet not found'); return; }
+  const data = await res.json();
+  openDetail(`
+    <h3 style="margin-bottom:4px;">CCP v${data.ccp_version} Packet</h3>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Trace: ${esc(data.trace_id)}</div>
+    <div class="json-block">${JSON.stringify(data, null, 2)}</div>
+  `);
+}
+
+// ============ RESOURCES ============
+async function loadResources() {
+  const res = await fetch(`${API}/admin/resources`);
+  const data = await res.json();
+  const el = document.getElementById('resources-content');
+  el.innerHTML = '';
+
+  for (const [id, desc] of Object.entries(data.resources)) {
+    el.innerHTML += `
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <span class="card-title">${esc(id)}</span>
+          <span class="resource-tag">${esc(desc.sensitivity)}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">${esc(desc.description || '')}</div>
+        <div style="font-size:11px;color:var(--text-muted);">
+          Origin: ${esc(desc.origin)} | TTL: ${desc.ttl_seconds}s
+        </div>
+      </div>`;
+  }
+}
+
+// ============ DETAIL PANEL ============
+function openDetail(html) {
+  document.getElementById('detail-content').innerHTML = html;
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+// Initial load
+loadRoles();
+</script>
+</body>
+</html>

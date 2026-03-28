@@ -1,0 +1,44 @@
+{
+  "schema_version": "2.0",
+  "tenant_id": "demo_university",
+  "roles": {
+    "Admin": {
+      "clearance": "Full-Access",
+      "description": "Unrestricted access to all resources",
+      "allowed_resources": [
+        "persons",
+        "financial_information",
+        "grades",
+        "classes"
+      ],
+      "mask_overrides": [],
+      "can_view_others_financial": true,
+      "can_view_grades": true
+    },
+    "Teacher": {
+      "clearance": "Department-Scoped",
+      "description": "Access to academic data and own financial records only",
+      "allowed_resources": [
+        "persons",
+        "grades",
+        "classes"
+      ],
+      "mask_overrides": [],
+      "can_view_others_financial": false,
+      "can_view_grades": true,
+      "financial_scope": "own_only"
+    },
+    "Student": {
+      "clearance": "Self-Scoped",
+      "description": "Access to class info and own financial records only",
+      "allowed_resources": [
+        "persons",
+        "classes"
+      ],
+      "mask_overrides": [],
+      "can_view_others_financial": false,
+      "can_view_grades": false,
+      "financial_scope": "own_only"
+    }
+  }
+}

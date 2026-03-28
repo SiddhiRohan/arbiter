@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbiter AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117; --surface: #161b22; --surface2: #1c2333;
+    --border: #2a3144; --text: #e6edf3; --text-dim: #8b949e; --text-muted: #545d68;
+    --accent: #00e5c7; --accent-dim: rgba(0,229,199,0.1); --accent-border: rgba(0,229,199,0.2);
+    --green: #3fb950; --green-bg: rgba(63,185,80,0.1);
+    --orange: #d29922; --orange-bg: rgba(210,153,34,0.1);
+    --red: #f85149; --red-bg: rgba(248,81,73,0.1);
+    --purple: #bc8cff; --purple-bg: rgba(188,140,255,0.08);
+    --blue: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; height: 100vh; overflow: hidden; }
+
+  /* LOGIN */
+  .login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+  .login-screen .grid-bg {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,229,199,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,199,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 48px 40px; width: 380px; text-align: center; position: relative; z-index: 1;
+    animation: fadeUp 0.5s ease;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .login-card .logo-icon {
+    width: 56px; height: 56px; background: linear-gradient(135deg, var(--accent), var(--blue));
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin: 0 auto 20px; color: #0e1117; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .login-card h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .login-card h1 span { color: var(--accent); }
+  .login-card .tagline { font-size: 13px; color: var(--text-dim); margin-bottom: 28px; }
+  .form-group { text-align: left; margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 12px 16px; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--accent); }
+  .form-group input::placeholder { color: var(--text-muted); }
+  .login-btn {
+    width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 10px;
+    color: #0e1117; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; margin-top: 8px;
+  }
+  .login-btn:hover { opacity: 0.85; }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; min-height: 20px; }
+  .demo-hint { font-size: 11px; color: var(--text-muted); margin-top: 16px; font-family: 'JetBrains Mono', monospace; }
+
+  /* CHAT */
+  .chat-screen { height: 100vh; display: flex; flex-direction: column; }
+  .topbar {
+    display: flex; align-items: center; padding: 14px 24px;
+    border-bottom: 1px solid var(--border); background: var(--surface); gap: 14px; flex-shrink: 0;
+  }
+  .topbar .logo { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .topbar .logo span { color: var(--accent); }
+  .topbar .logo .dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px rgba(63,185,80,0.4); }
+  .topbar .role-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    padding: 5px 12px; border-radius: 8px; letter-spacing: 0.5px;
+  }
+  .role-badge.admin { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,81,73,0.2); }
+  .role-badge.teacher { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(210,153,34,0.2); }
+  .role-badge.student { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(188,140,255,0.2); }
+  .topbar .spacer { flex: 1; }
+  .topbar-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    padding: 7px 14px; background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .topbar-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .welcome-msg { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+  .welcome-msg h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
+  .welcome-msg p { font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+  .welcome-msg .sample-queries { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+  .sample-q {
+    font-size: 12px; padding: 8px 14px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 20px; cursor: pointer;
+    color: var(--text-dim); font-family: inherit; transition: all 0.2s;
+  }
+  .sample-q:hover { border-color: var(--accent); color: var(--accent); }
+
+  .msg { display: flex; gap: 12px; max-width: 760px; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.ai { align-self: flex-start; }
+  .msg-avatar {
+    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+  .msg.user .msg-avatar { background: var(--accent-dim); color: var(--accent); }
+  .msg.ai .msg-avatar { background: linear-gradient(135deg, var(--accent-dim), rgba(88,166,255,0.1)); color: var(--blue); }
+  .msg-body { padding: 14px 18px; border-radius: 14px; font-size: 14px; line-height: 1.65; }
+  .msg.user .msg-body { background: var(--accent-dim); border: 1px solid var(--accent-border); border-bottom-right-radius: 4px; }
+  .msg.ai .msg-body { background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius: 4px; white-space: pre-wrap; }
+
+  .access-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .access-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+    padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px;
+  }
+  .access-badge.masked { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(210,153,34,0.15); }
+  .access-badge.denied { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,81,73,0.15); }
+  .access-badge.granted { background: var(--green-bg); color: var(--green); border: 1px solid rgba(63,185,80,0.15); }
+  .access-badge.trace { background: rgba(0,229,199,0.06); color: var(--text-muted); border: 1px solid var(--accent-border); }
+
+  .typing-indicator { display: flex; gap: 5px; padding: 4px 0; }
+  .typing-indicator span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: blink 1.4s infinite both; }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity:0.3; } 40% { opacity:1; } }
+
+  .input-area { padding: 16px 24px 20px; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .input-row { display: flex; gap: 10px; max-width: 760px; margin: 0 auto; }
+  .input-row input {
+    flex: 1; padding: 14px 18px; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  .input-row input:focus { border-color: var(--accent); }
+  .input-row input::placeholder { color: var(--text-muted); }
+  .send-btn {
+    width: 48px; height: 48px; background: var(--accent); border: none; border-radius: 12px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; flex-shrink: 0;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .send-btn svg { width: 20px; height: 20px; fill: #0e1117; }
+  .iccp-footer { text-align: center; padding: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const API = window.location.origin;
+
+const SAMPLE_QUERIES = {
+  Admin:   ["Show me all financial records", "What are Alex's grades?", "Show me all employee salaries"],
+  Teacher: ["Show me grades for my classes", "What is my salary?", "Can I see student financial records?"],
+  Student: ["What classes am I enrolled in?", "Show me my tuition balance", "Can I see grade records?"],
+};
+
+let currentUser = null, messages = [], isLoading = false;
+
+function render() {
+  const app = document.getElementById("app");
+  if (!currentUser) { app.innerHTML = renderLogin(); attachLoginHandlers(); }
+  else { app.innerHTML = renderChat(); attachChatHandlers(); scrollToBottom(); }
+}
+
+function renderLogin() {
+  return `
+    <div class="login-screen">
+      <div class="grid-bg"></div>
+      <div class="login-card">
+        <div class="logo-icon">A</div>
+        <h1>Arbiter <span>AI</span></h1>
+        <p class="tagline">ICCP-governed access control</p>
+        <div class="form-group"><label>User ID</label><input type="text" id="loginId" placeholder="admin / teacher / student" autocomplete="off"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password"></div>
+        <button class="login-btn" id="loginBtn">Sign In</button>
+        <div class="login-error" id="loginError"></div>
+        <div class="demo-hint">Demo: admin/admin, teacher/teacher, student/student</div>
+      </div>
+    </div>`;
+}
+
+function renderChat() {
+  const rl = currentUser.role.toLowerCase();
+  const samples = SAMPLE_QUERIES[currentUser.role] || [];
+  let msgsHtml = "";
+  if (messages.length === 0) {
+    msgsHtml = `<div class="welcome-msg"><h2>Welcome, ${esc(currentUser.label)}</h2>
+      <p>Ask about university records. Arbiter's ICCP engine governs what data your role can access.</p>
+      <div class="sample-queries">${samples.map(q => `<button class="sample-q" data-query="${esc(q)}">${esc(q)}</button>`).join("")}</div></div>`;
+  } else {
+    msgsHtml = messages.map(m => {
+      if (m.type === "user") return `<div class="msg user"><div class="msg-avatar">U</div><div class="msg-body">${esc(m.text)}</div></div>`;
+      let badges = "";
+      if (m.meta) {
+        let b = [];
+        (m.meta.masked_fields||[]).forEach(f => b.push(`<span class="access-badge masked">MASKED: ${f}</span>`));
+        (m.meta.denied_resources||[]).forEach(f => b.push(`<span class="access-badge denied">DENIED: ${f}</span>`));
+        if (m.meta.access_level) {
+          const c = m.meta.access_level==="full"?"granted":m.meta.access_level==="denied"?"denied":"masked";
+          b.push(`<span class="access-badge ${c}">${m.meta.access_level.toUpperCase()}</span>`);
+        }
+        if (m.meta.trace_id) b.push(`<span class="access-badge trace">${m.meta.trace_id}</span>`);
+        if (b.length) badges = `<div class="access-badges">${b.join("")}</div>`;
+      }
+      return `<div class="msg ai"><div class="msg-avatar">A</div><div class="msg-body">${fmt(m.text)}${badges}</div></div>`;
+    }).join("");
+    if (isLoading) msgsHtml += `<div class="msg ai"><div class="msg-avatar">A</div><div class="msg-body"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`;
+  }
+  return `<div class="chat-screen">
+    <div class="topbar">
+      <div class="logo"><div class="dot"></div> Arbiter <span>AI</span></div>
+      <span class="role-badge ${rl}">${currentUser.role}</span>
+      <div class="spacer"></div>
+      <span style="font-size:13px;color:var(--text-dim);">${esc(currentUser.label)}</span>
+      <a href="/admin" class="topbar-btn" target="_blank">Admin</a>
+      <button class="topbar-btn danger" id="logoutBtn">Logout</button>
+    </div>
+    <div class="messages" id="messagesArea">${msgsHtml}</div>
+    <div class="input-area"><div class="input-row">
+      <input type="text" id="chatInput" placeholder="Ask about university records..." autocomplete="off" ${isLoading?"disabled":""}>
+      <button class="send-btn" id="sendBtn" ${isLoading?"disabled":""}><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div></div>
+    <div class="iccp-footer">ARBITER ICCP GOVERNED -- CCP v2.0 -- ALL ACCESS LOGGED</div>
+  </div>`;
+}
+
+function attachLoginHandlers() {
+  const id = document.getElementById("loginId"), pw = document.getElementById("loginPass"),
+        btn = document.getElementById("loginBtn"), err = document.getElementById("loginError");
+  async function go() {
+    const u = id.value.trim().toLowerCase(), p = pw.value.trim(); err.textContent = "";
+    if (!u || !p) { err.textContent = "Please enter both fields."; return; }
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username: u, password: p}),
+      });
+      if (!res.ok) { err.textContent = "Invalid credentials."; return; }
+      const data = await res.json();
+      currentUser = data; messages = []; render();
+    } catch(e) { err.textContent = "Could not connect to server."; }
+  }
+  btn.addEventListener("click", go);
+  pw.addEventListener("keydown", e => { if (e.key==="Enter") go(); });
+  id.addEventListener("keydown", e => { if (e.key==="Enter") pw.focus(); });
+  id.focus();
+}
+
+function attachChatHandlers() {
+  const input = document.getElementById("chatInput");
+  document.getElementById("sendBtn").addEventListener("click", () => send(input.value));
+  input.addEventListener("keydown", e => { if (e.key==="Enter"&&!e.shiftKey) { e.preventDefault(); send(input.value); } });
+  document.getElementById("logoutBtn").addEventListener("click", () => { currentUser=null; messages=[]; render(); });
+  document.querySelectorAll(".sample-q").forEach(b => b.addEventListener("click", () => send(b.dataset.query)));
+  input.focus();
+}
+
+async function send(text) {
+  text = text.trim(); if (!text || isLoading) return;
+  messages.push({type:"user",text}); isLoading=true; render();
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({user_id:currentUser.user_id, role:currentUser.role, message:text}),
+    });
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+    messages.push({type:"ai", text:d.response, meta:{access_level:d.access_level, masked_fields:d.masked_fields||[], denied_resources:d.denied_resources||[], trace_id:d.trace_id}});
+  } catch(e) { console.error(e); messages.push({type:"ai",text:"Could not connect to server.",meta:null}); }
+  isLoading=false; render();
+}
+
+function esc(s) { const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function fmt(s) { return esc(s).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\n/g,"<br>"); }
+function scrollToBottom() { const a=document.getElementById("messagesArea"); if(a) setTimeout(()=>a.scrollTop=a.scrollHeight,50); }
+render();
+</script>
+</body>
+</html>

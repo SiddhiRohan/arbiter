@@ -1,0 +1,50 @@
+{
+  "schema_version": "2.0",
+  "tenant_id": "demo_university",
+
+  "institution_rules": {
+    "always_mask": ["ssn"],
+    "prohibited_access": [
+      { "role": "Student", "resource": "grades", "reason": "FERPA: students cannot view grade records via AI" },
+      { "role": "Student", "resource": "financial_information_others", "reason": "Students may only view own financial data" },
+      { "role": "Teacher", "resource": "financial_information_others", "reason": "Teachers may only view own salary" }
+    ],
+    "pii_fields": ["ssn", "phone", "email"],
+    "financial_fields": ["annual_salary", "amount_due", "amount_paid", "balance"]
+  },
+
+  "resources": {
+    "persons": {
+      "origin": "StudentInformationSystem",
+      "sensitivity": "FERPA",
+      "ttl_seconds": 300,
+      "description": "Directory of all persons in the system"
+    },
+    "financial_information": {
+      "origin": "StudentInformationSystem",
+      "sensitivity": "FERPA-Financial",
+      "ttl_seconds": 120,
+      "description": "Tuition, salary, and payment records"
+    },
+    "grades": {
+      "origin": "StudentInformationSystem",
+      "sensitivity": "FERPA",
+      "ttl_seconds": 300,
+      "description": "Academic grade records"
+    },
+    "classes": {
+      "origin": "StudentInformationSystem",
+      "sensitivity": "Institutional",
+      "ttl_seconds": 600,
+      "description": "Course schedules, enrollment, and room assignments"
+    }
+  },
+
+  "model_config": {
+    "model_id": "claude-sonnet-4-20250514",
+    "provider": "Anthropic",
+    "compliance": "SOC2-certified",
+    "risk_level": "low",
+    "max_tokens": 1024
+  }
+}
