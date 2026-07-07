@@ -3,7 +3,7 @@ Arbiter -- Admin & Utility API Routes
 Endpoints for:
 - Audit log viewing and download
 - Context packet retrieval
-- Role management (CRUD)
+- Role management (CRUD) — ABAC model
 - Policy management
 - Demo utilities
 """
@@ -76,7 +76,7 @@ async def download_audit_log_file():
 
 @router.get("/context-packet/{trace_id}")
 async def get_context_packet(trace_id: str):
-    """View the CCP v2.0 Context Packet for a trace."""
+    """View the CCP v3.0 Context Packet for a trace."""
     packet = _context_packets.get(trace_id)
     if not packet:
         raise HTTPException(
@@ -98,23 +98,24 @@ async def list_context_packets():
             "decision": packet.get("policy_decision"),
             "user_id": packet.get("identity_scope", {}).get("user_id"),
             "role": packet.get("identity_scope", {}).get("role"),
+            "output_violations": len(packet.get("output_governance", {}).get("violations", [])),
+            "inference_channels_blocked": len(packet.get("inference_control", {}).get("channels_blocked", [])),
         })
     return {"total": len(summaries), "packets": summaries}
 
 
 # ============================================================
-# ROLE MANAGEMENT (CRUD)
+# ROLE MANAGEMENT (CRUD) — ABAC model
 # ============================================================
 
 class RoleCreateRequest(BaseModel):
     role_name: str
     clearance: str
     description: str
-    allowed_resources: list[str]
     mask_overrides: list[str] = []
-    can_view_others_financial: bool = False
-    can_view_grades: bool = False
-    financial_scope: Optional[str] = None
+    financial_scope: str = "none"
+    standing_scope: str = "none"
+    grades_scope: str = "none"
 
 
 @router.get("/admin/roles")
@@ -130,17 +131,15 @@ async def list_roles():
 
 @router.post("/admin/roles")
 async def create_role(request: RoleCreateRequest):
-    """Create or update a role."""
+    """Create or update a role. Access is resolved from clearance via ABAC rules."""
     role_config = {
         "clearance": request.clearance,
         "description": request.description,
-        "allowed_resources": request.allowed_resources,
         "mask_overrides": request.mask_overrides,
-        "can_view_others_financial": request.can_view_others_financial,
-        "can_view_grades": request.can_view_grades,
+        "financial_scope": request.financial_scope,
+        "standing_scope": request.standing_scope,
+        "grades_scope": request.grades_scope,
     }
-    if request.financial_scope:
-        role_config["financial_scope"] = request.financial_scope
 
     update_role(request.role_name, role_config)
     return {"status": "ok", "role": request.role_name, "config": role_config}

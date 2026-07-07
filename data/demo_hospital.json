@@ -1,0 +1,80 @@
+{
+  "tenant_id": "demo_hospital",
+  "data_source": "Mock Electronic Health Record System",
+  "last_updated": "2026-03-28T00:00:00Z",
+
+  "persons": [
+    {"person_id": "H001", "name": "James Mitchell", "role": "Patient", "email": "jmitchell@email.com", "ssn": "111-22-3333", "phone": "215-555-0101", "date_of_birth": "1985-03-15", "blood_type": "O+", "emergency_contact": "Linda Mitchell (215-555-9901)", "insurance_id": "BC-445521"},
+    {"person_id": "H002", "name": "Sarah Lopez", "role": "Patient", "email": "slopez@email.com", "ssn": "222-33-4444", "phone": "215-555-0102", "date_of_birth": "1992-07-22", "blood_type": "A-", "emergency_contact": "Carlos Lopez (215-555-9902)", "insurance_id": "AE-882214"},
+    {"person_id": "H003", "name": "Robert Kim", "role": "Patient", "email": "rkim@email.com", "ssn": "333-44-5555", "phone": "215-555-0103", "date_of_birth": "1978-11-08", "blood_type": "B+", "emergency_contact": "Yoon Kim (215-555-9903)", "insurance_id": "UN-337789"},
+    {"person_id": "H004", "name": "Maria Santos", "role": "Patient", "email": "msantos@email.com", "ssn": "444-55-6666", "phone": "215-555-0104", "date_of_birth": "1968-01-30", "blood_type": "AB+", "emergency_contact": "Diego Santos (215-555-9904)", "insurance_id": "MC-112233"},
+    {"person_id": "H005", "name": "David Chen", "role": "Patient", "email": "dchen@email.com", "ssn": "555-66-7777", "phone": "215-555-0105", "date_of_birth": "2001-09-12", "blood_type": "O-", "emergency_contact": "Wei Chen (215-555-9905)", "insurance_id": "BC-998877"},
+
+    {"person_id": "H010", "name": "Dr. Angela Rivera", "role": "Doctor", "email": "arivera@hospital.org", "ssn": "610-22-8901", "phone": "215-555-0201", "department": "Internal Medicine", "title": "Attending Physician", "specialty": "Cardiology", "license_number": "MD-PA-44521", "years_practice": 12},
+    {"person_id": "H011", "name": "Dr. Thomas Park", "role": "Doctor", "email": "tpark@hospital.org", "ssn": "621-33-9012", "phone": "215-555-0202", "department": "Internal Medicine", "title": "Resident", "specialty": "General Practice", "license_number": "MD-PA-88934", "years_practice": 3},
+    {"person_id": "H012", "name": "Dr. Rachel Foster", "role": "Doctor", "email": "rfoster@hospital.org", "ssn": "632-44-0123", "phone": "215-555-0203", "department": "Surgery", "title": "Chief of Surgery", "specialty": "Orthopedic Surgery", "license_number": "MD-PA-22178", "years_practice": 20},
+
+    {"person_id": "H020", "name": "Nurse Jennifer Walsh", "role": "Nurse", "email": "jwalsh@hospital.org", "ssn": "710-55-1234", "phone": "215-555-0301", "department": "Internal Medicine", "certification": "RN", "shift": "Day", "assigned_patients": ["H001", "H002", "H003"]},
+    {"person_id": "H021", "name": "Nurse Marcus Brown", "role": "Nurse", "email": "mbrown@hospital.org", "ssn": "721-66-2345", "phone": "215-555-0302", "department": "Surgery", "certification": "RN", "shift": "Night", "assigned_patients": ["H004", "H005"]},
+
+    {"person_id": "H030", "name": "Lisa Chang", "role": "Admin", "email": "lchang@hospital.org", "ssn": "810-77-3456", "phone": "215-555-0401", "title": "Hospital Administrator", "department": "Administration"},
+    {"person_id": "H031", "name": "Kevin Moore", "role": "Receptionist", "email": "kmoore@hospital.org", "ssn": "821-88-4567", "phone": "215-555-0402", "title": "Front Desk", "department": "Administration"}
+  ],
+
+  "medical_records": [
+    {"patient_id": "H001", "record_id": "MR-001", "attending_physician": "H010", "primary_diagnosis": "Hypertension Stage 2", "icd_code": "I11.9", "date_diagnosed": "2024-06-15", "status": "Active", "notes": "Blood pressure consistently >140/90. Started on Lisinopril. Monitor kidney function."},
+    {"patient_id": "H001", "record_id": "MR-002", "attending_physician": "H010", "primary_diagnosis": "Type 2 Diabetes", "icd_code": "E11.9", "date_diagnosed": "2023-01-20", "status": "Active", "notes": "HbA1c at 7.2%. On Metformin 1000mg BID. Diet counseling referred."},
+    {"patient_id": "H002", "record_id": "MR-003", "attending_physician": "H011", "primary_diagnosis": "Generalized Anxiety Disorder", "icd_code": "F41.1", "date_diagnosed": "2025-03-10", "status": "Active", "notes": "Moderate anxiety. Started Sertraline 50mg. Therapy referral placed."},
+    {"patient_id": "H003", "record_id": "MR-004", "attending_physician": "H010", "primary_diagnosis": "Atrial Fibrillation", "icd_code": "I48.91", "date_diagnosed": "2022-08-05", "status": "Active", "notes": "Persistent AFib. On Eliquis 5mg BID. Cardiology follow-up q3mo."},
+    {"patient_id": "H003", "record_id": "MR-005", "attending_physician": "H012", "primary_diagnosis": "Right Knee Osteoarthritis", "icd_code": "M17.11", "date_diagnosed": "2025-01-12", "status": "Scheduled Surgery", "notes": "Total knee replacement scheduled April 2026. Pre-op clearance needed."},
+    {"patient_id": "H004", "record_id": "MR-006", "attending_physician": "H010", "primary_diagnosis": "Chronic Heart Failure", "icd_code": "I50.9", "date_diagnosed": "2021-11-30", "status": "Active", "notes": "NYHA Class II. EF 40%. On Entresto + Carvedilol. Salt-restricted diet."},
+    {"patient_id": "H005", "record_id": "MR-007", "attending_physician": "H011", "primary_diagnosis": "Fractured Left Wrist", "icd_code": "S52.502A", "date_diagnosed": "2026-03-20", "status": "Healing", "notes": "Distal radius fracture from sports injury. Cast applied. Follow-up in 4 weeks."}
+  ],
+
+  "medications": [
+    {"patient_id": "H001", "medication": "Lisinopril", "dosage": "20mg", "frequency": "Once daily", "prescriber": "H010", "start_date": "2024-06-15", "status": "Active", "pharmacy": "CVS #4421"},
+    {"patient_id": "H001", "medication": "Metformin", "dosage": "1000mg", "frequency": "Twice daily", "prescriber": "H010", "start_date": "2023-01-20", "status": "Active", "pharmacy": "CVS #4421"},
+    {"patient_id": "H002", "medication": "Sertraline", "dosage": "50mg", "frequency": "Once daily", "prescriber": "H011", "start_date": "2025-03-10", "status": "Active", "pharmacy": "Walgreens #891"},
+    {"patient_id": "H003", "medication": "Eliquis", "dosage": "5mg", "frequency": "Twice daily", "prescriber": "H010", "start_date": "2022-08-05", "status": "Active", "pharmacy": "CVS #4421"},
+    {"patient_id": "H004", "medication": "Entresto", "dosage": "97/103mg", "frequency": "Twice daily", "prescriber": "H010", "start_date": "2021-12-15", "status": "Active", "pharmacy": "Rite Aid #220"},
+    {"patient_id": "H004", "medication": "Carvedilol", "dosage": "25mg", "frequency": "Twice daily", "prescriber": "H010", "start_date": "2021-12-15", "status": "Active", "pharmacy": "Rite Aid #220"},
+    {"patient_id": "H005", "medication": "Ibuprofen", "dosage": "600mg", "frequency": "Every 6 hours as needed", "prescriber": "H011", "start_date": "2026-03-20", "status": "Active", "pharmacy": "CVS #4421"}
+  ],
+
+  "billing": [
+    {"patient_id": "H001", "bill_id": "B-001", "service": "Office Visit - Cardiology", "amount": 350, "insurance_covered": 280, "patient_responsibility": 70, "status": "Paid", "date": "2026-02-15"},
+    {"patient_id": "H001", "bill_id": "B-002", "service": "Lab Work - HbA1c + Metabolic Panel", "amount": 220, "insurance_covered": 176, "patient_responsibility": 44, "status": "Pending", "date": "2026-03-01"},
+    {"patient_id": "H002", "bill_id": "B-003", "service": "Psychiatric Evaluation", "amount": 450, "insurance_covered": 360, "patient_responsibility": 90, "status": "Paid", "date": "2025-03-10"},
+    {"patient_id": "H003", "bill_id": "B-004", "service": "Cardiology Follow-up + EKG", "amount": 520, "insurance_covered": 416, "patient_responsibility": 104, "status": "Pending", "date": "2026-03-15"},
+    {"patient_id": "H003", "bill_id": "B-005", "service": "Pre-Op Assessment - Knee", "amount": 680, "insurance_covered": 544, "patient_responsibility": 136, "status": "Pending", "date": "2026-03-22"},
+    {"patient_id": "H004", "bill_id": "B-006", "service": "Heart Failure Clinic", "amount": 400, "insurance_covered": 380, "patient_responsibility": 20, "status": "Paid", "date": "2026-01-20"},
+    {"patient_id": "H005", "bill_id": "B-007", "service": "ER Visit - Wrist Fracture", "amount": 2800, "insurance_covered": 2240, "patient_responsibility": 560, "status": "Payment Plan", "date": "2026-03-20"},
+    {"patient_id": "H010", "type": "salary", "annual_salary": 285000, "pay_frequency": "Biweekly", "benefits": "Full Medical + Malpractice", "status": "Active"},
+    {"patient_id": "H011", "type": "salary", "annual_salary": 72000, "pay_frequency": "Biweekly", "benefits": "Full Medical", "status": "Active"},
+    {"patient_id": "H012", "type": "salary", "annual_salary": 420000, "pay_frequency": "Biweekly", "benefits": "Full Medical + Malpractice + Housing", "status": "Active"}
+  ],
+
+  "departments": [
+    {"dept_id": "IM", "name": "Internal Medicine", "head": "H010", "faculty": ["H010", "H011"], "total_budget": 850000, "num_faculty": 2, "research_budget": 120000, "nursing_pool": 180000, "operating_budget": 550000},
+    {"dept_id": "SURG", "name": "Surgery", "head": "H012", "faculty": ["H012"], "total_budget": 1200000, "num_faculty": 1, "research_budget": 200000, "nursing_pool": 250000, "operating_budget": 750000}
+  ],
+
+  "appointments": [
+    {"appointment_id": "A-001", "patient_id": "H001", "doctor_id": "H010", "date": "2026-04-05", "time": "9:00 AM", "type": "Follow-up", "department": "Internal Medicine", "status": "Scheduled", "notes": "BP check + lab review"},
+    {"appointment_id": "A-002", "patient_id": "H003", "doctor_id": "H010", "date": "2026-04-10", "time": "2:00 PM", "type": "Cardiology Follow-up", "department": "Internal Medicine", "status": "Scheduled", "notes": "AFib monitoring, EKG"},
+    {"appointment_id": "A-003", "patient_id": "H003", "doctor_id": "H012", "date": "2026-04-15", "time": "7:00 AM", "type": "Surgery", "department": "Surgery", "status": "Scheduled", "notes": "Total knee replacement - right"},
+    {"appointment_id": "A-004", "patient_id": "H005", "doctor_id": "H011", "date": "2026-04-18", "time": "10:30 AM", "type": "Follow-up", "department": "Internal Medicine", "status": "Scheduled", "notes": "Cast check, X-ray"},
+    {"appointment_id": "A-005", "patient_id": "H002", "doctor_id": "H011", "date": "2026-04-08", "time": "3:00 PM", "type": "Medication Review", "department": "Internal Medicine", "status": "Scheduled", "notes": "Sertraline efficacy check"}
+  ],
+
+  "lab_results": [
+    {"patient_id": "H001", "test_name": "HbA1c", "result": "7.2%", "reference_range": "4.0-5.6%", "status": "High", "date": "2026-03-01", "ordered_by": "H010"},
+    {"patient_id": "H001", "test_name": "Creatinine", "result": "1.1 mg/dL", "reference_range": "0.7-1.3 mg/dL", "status": "Normal", "date": "2026-03-01", "ordered_by": "H010"},
+    {"patient_id": "H001", "test_name": "Blood Pressure", "result": "148/92 mmHg", "reference_range": "<120/80 mmHg", "status": "High", "date": "2026-02-15", "ordered_by": "H010"},
+    {"patient_id": "H003", "test_name": "INR", "result": "2.4", "reference_range": "2.0-3.0", "status": "Normal", "date": "2026-03-15", "ordered_by": "H010"},
+    {"patient_id": "H003", "test_name": "EKG", "result": "Irregular rhythm - AFib confirmed", "reference_range": "Normal sinus rhythm", "status": "Abnormal", "date": "2026-03-15", "ordered_by": "H010"},
+    {"patient_id": "H004", "test_name": "BNP", "result": "380 pg/mL", "reference_range": "<100 pg/mL", "status": "High", "date": "2026-01-20", "ordered_by": "H010"},
+    {"patient_id": "H004", "test_name": "Ejection Fraction", "result": "40%", "reference_range": "55-70%", "status": "Low", "date": "2026-01-20", "ordered_by": "H010"},
+    {"patient_id": "H005", "test_name": "X-Ray Left Wrist", "result": "Distal radius fracture, non-displaced", "reference_range": "No fracture", "status": "Abnormal", "date": "2026-03-20", "ordered_by": "H011"}
+  ]
+}

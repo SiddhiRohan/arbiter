@@ -1,15 +1,117 @@
 """
-Arbiter — Data Filter
+Arbiter — Data Filter (Generic, Scalable)
 Takes raw tenant data + a PolicyDecision, returns only what the user is allowed to see.
-Handles field masking (SSN --> ***), record scoping (own-only), and access denial.
-Designed to be data-schema agnostic — the filtering rules come from the policy, not hardcoded logic.
+
+Fully generic — no resource names hardcoded in the filter loop.
+Adding a new resource requires zero changes to this file IF:
+  - The resource uses a standard scope type (own_only, all, none)
+  - The scope_key is defined in policies.json
+
+For new scope types (e.g. "department_only"), register a resolver below.
 """
 
 import copy
-from typing import Any
+from typing import Optional
 
 from policy_engine import PolicyDecision
 
+
+# ================================================================
+# Scope Resolver Registry
+#
+# Each resolver takes (raw_data, user_id, resource_name, resource_config)
+# and returns either:
+#   None              → pass all records (no filtering)
+#   (field, set)      → keep records where record[field] is in the set
+# ================================================================
+
+_SCOPE_RESOLVERS = {}
+
+
+def _register(name):
+    """Decorator to register a scope resolver by name."""
+    def decorator(fn):
+        _SCOPE_RESOLVERS[name] = fn
+        return fn
+    return decorator
+
+
+@_register("all")
+def _scope_all(raw_data, user_id, resource_name, resource_config):
+    return None
+
+
+@_register("none")
+def _scope_none(raw_data, user_id, resource_name, resource_config):
+    return ("__deny__", set())
+
+
+@_register("own_only")
+def _scope_own(raw_data, user_id, resource_name, resource_config):
+    field = resource_config.get("scope_key", "person_id")
+    return (field, {user_id})
+
+
+@_register("own_classes")
+def _scope_own_classes(raw_data, user_id, resource_name, resource_config):
+    class_ids = {
+        c["class_id"]
+        for c in raw_data.get("classes", [])
+        if c.get("teacher_id") == user_id
+    }
+    filter_field = "class_id" if "class_id" in _guess_fields(raw_data, resource_name) else resource_config.get("scope_key", "class_id")
+    return (filter_field, class_ids)
+
+
+@_register("advisees_only")
+def _scope_advisees(raw_data, user_id, resource_name, resource_config):
+    advisee_ids = {
+        a["student_id"]
+        for a in raw_data.get("advisor_assignments", [])
+        if a.get("advisor_id") == user_id
+    }
+    field = resource_config.get("scope_key", "student_id")
+    return (field, advisee_ids)
+
+
+@_register("assigned_courses_only")
+def _scope_assigned_courses(raw_data, user_id, resource_name, resource_config):
+    class_ids = {
+        t["class_id"]
+        for t in raw_data.get("ta_assignments", [])
+        if t.get("student_id") == user_id
+    }
+    filter_field = "class_id" if "class_id" in _guess_fields(raw_data, resource_name) else resource_config.get("scope_key", "class_id")
+    return (filter_field, class_ids)
+
+
+def _guess_fields(raw_data: dict, resource_name: str) -> set[str]:
+    """Get field names from the first record of a resource."""
+    records = raw_data.get(resource_name, [])
+    if records and isinstance(records, list) and isinstance(records[0], dict):
+        return set(records[0].keys())
+    return set()
+
+
+# ================================================================
+# Resource-specific view limiters
+#
+# Optional: restrict which fields a role can see for a resource.
+# If a resource isn't here, all fields pass through.
+# Keyed by (resource_name, clearance_level).
+# ================================================================
+
+_VIEW_LIMITERS = {
+    ("classes", "Self-Scoped"): [
+        "class_id", "name", "teacher_name", "schedule",
+        "room", "credits", "enrolled_students",
+    ],
+}
+
+
+# ================================================================
+# Main filter — fully generic
+# ================================================================
 
 def filter_data(
     raw_data: dict,
@@ -17,53 +119,147 @@ def filter_data(
     role: str,
     user_id: str,
     role_config: dict,
+    channels_blocked: Optional[list[dict]] = None,
+    resource_configs: Optional[dict] = None,
 ) -> dict:
     """
     Apply policy-based filtering to raw tenant data.
-    Returns a new dict containing only authorized, masked, scoped data.
+    Iterates over all resources in the data — no hardcoded resource names.
+
+    Args:
+        raw_data: full tenant dataset
+        policy: evaluated PolicyDecision from the policy engine
+        role: user's role name
+        user_id: user's person_id
+        role_config: role configuration from roles.json
+        channels_blocked: inference channels to enforce
+        resource_configs: resource metadata from policies.json (sensitivity, scope_key, etc.)
     """
     filtered = {}
+    withheld_fields = _get_withheld_fields(channels_blocked)
+    clearance = role_config.get("clearance", "Self-Scoped")
+    resource_configs = resource_configs or {}
 
-    # Persons — available to most roles, but with field masking
-    if "persons" in policy.authorized_resources:
-        persons = copy.deepcopy(raw_data.get("persons", []))
-        for person in persons:
-            _apply_masks(person, policy.mask_fields)
-        filtered["persons"] = persons
+    # Identify which keys in raw_data are actual resources (skip metadata)
+    metadata_keys = {"tenant_id", "data_source", "last_updated"}
+    resource_names = [k for k in raw_data.keys() if k not in metadata_keys]
 
-    # Financial information — scoped based on role config
-    if "financial_information" in policy.authorized_resources:
-        financials = copy.deepcopy(raw_data.get("financial_information", []))
-        scope = role_config.get("financial_scope")
+    for resource_name in resource_names:
+        records = raw_data.get(resource_name, [])
+        res_config = resource_configs.get(resource_name, {})
 
-        if role_config.get("can_view_others_financial", False):
-            filtered["financial_information"] = financials
-        elif scope == "own_only":
-            own_records = [f for f in financials if f.get("person_id") == user_id]
-            filtered["financial_information"] = own_records
-            filtered["financial_information_note"] = _scope_note(role)
+        # Step 1: Authorization check
+        if resource_name not in policy.authorized_resources:
+            filtered[resource_name] = f"[ACCESS DENIED — Your role cannot access {resource_name}.]"
+            continue
+
+        # Step 2: Deep copy to avoid mutating source
+        if isinstance(records, list):
+            records = copy.deepcopy(records)
         else:
-            filtered["financial_information"] = "[ACCESS DENIED]"
-    else:
-        filtered["financial_information"] = "[ACCESS DENIED — Your role cannot access financial records.]"
+            filtered[resource_name] = records
+            continue
 
-    # Grades — binary access (allowed or denied)
-    if "grades" in policy.authorized_resources:
-        filtered["grades"] = copy.deepcopy(raw_data.get("grades", []))
-    else:
-        filtered["grades"] = "[ACCESS DENIED — Your role cannot access grade records.]"
+        # Step 3: Determine scope and filter records
+        scope_type = _resolve_scope_type(resource_name, role_config)
+        resolver = _SCOPE_RESOLVERS.get(scope_type)
 
-    # Classes — allowed for most roles, but students get a limited view
-    if "classes" in policy.authorized_resources:
-        classes = copy.deepcopy(raw_data.get("classes", []))
-        if role == "Student":
-            filtered["classes"] = [_student_class_view(c) for c in classes]
-        else:
-            filtered["classes"] = classes
-    else:
-        filtered["classes"] = "[ACCESS DENIED]"
+        if resolver is None:
+            # Unknown scope type — deny by default (fail-closed)
+            filtered[resource_name] = f"[ACCESS DENIED — Unknown scope: {scope_type}]"
+            continue
+
+        scope_result = resolver(raw_data, user_id, resource_name, res_config)
+
+        if scope_result is not None:
+            filter_field, allowed_values = scope_result
+            if filter_field == "__deny__":
+                filtered[resource_name] = f"[ACCESS DENIED — Your role cannot access {resource_name}.]"
+                continue
+            records = [r for r in records if r.get(filter_field) in allowed_values]
+            if scope_type != "all":
+                filtered[f"{resource_name}_note"] = _scope_note(scope_type, role, resource_name)
+
+        # Step 4: Apply field masks (SSN, etc.)
+        for record in records:
+            _apply_masks(record, policy.mask_fields)
+
+        # Step 5: Apply inference channel withholding
+        resource_withheld = [w for w in withheld_fields if w.startswith(f"{resource_name}.")]
+        for withheld in resource_withheld:
+            field_name = withheld.split(".", 1)[1]
+            for record in records:
+                record.pop(field_name, None)
+            channel_info = _find_channel(channels_blocked, withheld)
+            filtered[f"{resource_name}_inference_note"] = (
+                f"{field_name} withheld — inference channel {channel_info} detected."
+            )
+
+        # Step 6: Apply view limiter (restrict visible fields for certain roles)
+        limiter_key = (resource_name, clearance)
+        if limiter_key in _VIEW_LIMITERS:
+            allowed_fields = _VIEW_LIMITERS[limiter_key]
+            records = [
+                {k: v for k, v in record.items() if k in allowed_fields}
+                for record in records
+            ]
+
+        filtered[resource_name] = records
 
     return filtered
+
+
+# ================================================================
+# Helpers
+# ================================================================
+
+def _resolve_scope_type(resource_name: str, role_config: dict) -> str:
+    """
+    Determine the scope type for a resource from role config.
+    Checks for {resource}_scope, then falls back based on clearance.
+    """
+    # Direct scope config: e.g. "financial_scope": "own_only"
+    # Try exact match first, then prefix match
+    for key in [f"{resource_name}_scope", f"{'_'.join(resource_name.split('_')[:1])}_scope"]:
+        scope = role_config.get(key)
+        if scope:
+            return scope
+
+    # Map common resource names to their scope keys
+    scope_key_map = {
+        "financial_information": "financial_scope",
+        "academic_standing": "standing_scope",
+        "grades": "grades_scope",
+    }
+    mapped_key = scope_key_map.get(resource_name)
+    if mapped_key:
+        scope = role_config.get(mapped_key)
+        if scope:
+            return scope
+
+    # Fallback: Full-Access gets all, everyone else gets all for authorized resources
+    clearance = role_config.get("clearance", "Self-Scoped")
+    if clearance == "Full-Access":
+        return "all"
+
+    return "all"
+
+
+def _get_withheld_fields(channels_blocked: Optional[list[dict]]) -> set[str]:
+    """Extract the set of fields to withhold from blocked inference channels."""
+    if not channels_blocked:
+        return set()
+    return {ch["withheld_field"] for ch in channels_blocked}
+
+
+def _find_channel(channels_blocked: Optional[list[dict]], withheld_field: str) -> str:
+    """Find the channel ID that triggered a withheld field."""
+    if not channels_blocked:
+        return "unknown"
+    for ch in channels_blocked:
+        if ch.get("withheld_field") == withheld_field:
+            return f"{ch.get('channel_id', '?')} ({ch.get('name', '?')})"
+    return "unknown"
 
 
 def _apply_masks(record: dict, mask_fields: list[str]) -> None:
@@ -73,106 +269,107 @@ def _apply_masks(record: dict, mask_fields: list[str]) -> None:
             record[field] = "***-**-****" if field == "ssn" else "[MASKED]"
 
 
-def _student_class_view(class_record: dict) -> dict:
-    """Return a limited view of class data for students (no internal notes, etc)."""
-    return {
-        "class_id": class_record.get("class_id"),
-        "name": class_record.get("name"),
-        "teacher_name": class_record.get("teacher_name"),
-        "schedule": class_record.get("schedule"),
-        "room": class_record.get("room"),
-        "credits": class_record.get("credits"),
-        "enrolled_students": class_record.get("enrolled_students", []),
+def _scope_note(scope_type: str, role: str, resource_name: str) -> str:
+    """Human-readable note explaining why data is scoped."""
+    notes = {
+        "own_only": f"Filtered to your own records only.",
+        "own_classes": f"Filtered to classes you teach.",
+        "advisees_only": f"Filtered to your advisees only.",
+        "assigned_courses_only": f"Filtered to your assigned course(s) only.",
     }
+    return notes.get(scope_type, f"{resource_name} scoped to authorized records.")
 
 
-def _scope_note(role: str) -> str:
-    """Human-readable note explaining why financial data is scoped."""
-    if role == "Teacher":
-        return "Restricted to your own salary record only."
-    elif role == "Student":
-        return "Restricted to your own tuition information only."
-    return "Financial data has been scoped to your own records."
-
+# ================================================================
+# Text renderer — generic
+# ================================================================
 
 def to_text(filtered_data: dict) -> str:
     """
     Convert filtered data dict into a readable text block for the LLM context.
-    This is what the AI model actually sees.
+    Fully generic — renders any resource without hardcoded field names.
     """
     sections = []
 
-    if "persons" in filtered_data:
-        section = ["=== PERSONS ==="]
-        data = filtered_data["persons"]
-        if isinstance(data, str):
-            section.append(f"  {data}")
-        else:
-            for p in data:
-                line = f"  {p['name']} (ID: {p['person_id']}) — Role: {p['role']}"
-                if p.get("major"):
-                    line += f", Major: {p['major']}, Year: {p['year']}"
-                if p.get("department"):
-                    line += f", Dept: {p['department']}"
-                if p.get("title"):
-                    line += f", Title: {p['title']}"
-                line += f", Email: {p['email']}, SSN: {p['ssn']}"
-                section.append(line)
-        sections.append("\n".join(section))
+    for resource_name, data in filtered_data.items():
+        # Skip metadata notes
+        if resource_name.endswith("_note") or resource_name.endswith("_inference_note"):
+            continue
 
-    if "financial_information" in filtered_data:
-        section = ["\n=== FINANCIAL INFORMATION ==="]
-        data = filtered_data["financial_information"]
-        note = filtered_data.get("financial_information_note")
-        if isinstance(data, str):
-            section.append(f"  {data}")
-        else:
-            if note:
-                section.append(f"  Note: {note}")
-            for f in data:
-                if f.get("type") == "tuition":
-                    section.append(
-                        f"  {f['person_id']}: Tuition — "
-                        f"Due: ${f['amount_due']:,}, Paid: ${f['amount_paid']:,}, "
-                        f"Balance: ${f['balance']:,}, "
-                        f"Scholarship: {f['scholarship']}, Status: {f['status']}"
-                    )
-                elif f.get("type") == "salary":
-                    section.append(
-                        f"  {f['person_id']}: Salary — "
-                        f"${f['annual_salary']:,}/year, {f['pay_frequency']}, "
-                        f"Benefits: {f['benefits']}, Status: {f['status']}"
-                    )
-        sections.append("\n".join(section))
+        section = [f"\n=== {resource_name.upper().replace('_', ' ')} ==="]
 
-    if "grades" in filtered_data:
-        section = ["\n=== GRADES ==="]
-        data = filtered_data["grades"]
+        # Access denied string
         if isinstance(data, str):
             section.append(f"  {data}")
-        else:
-            for g in data:
-                section.append(
-                    f"  Student {g['student_id']} in {g['class_id']}: "
-                    f"Midterm {g['midterm']}, Final {g['final']}, "
-                    f"Grade: {g['grade']}, Attendance: {g['attendance_rate'] * 100:.0f}%"
-                )
-        sections.append("\n".join(section))
+            sections.append("\n".join(section))
+            continue
 
-    if "classes" in filtered_data:
-        section = ["\n=== CLASSES ==="]
-        data = filtered_data["classes"]
-        if isinstance(data, str):
-            section.append(f"  {data}")
+        # Scope note
+        note = filtered_data.get(f"{resource_name}_note")
+        if note:
+            section.append(f"  Note: {note}")
+
+        # Inference note
+        inf_note = filtered_data.get(f"{resource_name}_inference_note")
+        if inf_note:
+            section.append(f"  [INFERENCE CONTROL] {inf_note}")
+
+        # Render records generically
+        if isinstance(data, list):
+            for record in data:
+                if isinstance(record, dict):
+                    section.append("  " + _render_record(record))
+                else:
+                    section.append(f"  {record}")
         else:
-            for c in data:
-                students = ", ".join(c.get("enrolled_students", []))
-                section.append(
-                    f"  {c['class_id']} — {c['name']} | "
-                    f"Teacher: {c.get('teacher_name', 'N/A')} | "
-                    f"{c['schedule']} | Room: {c['room']} | "
-                    f"Students: [{students}]"
-                )
+            section.append(f"  {data}")
+
         sections.append("\n".join(section))
 
     return "\n".join(sections)
+
+
+def _render_record(record: dict) -> str:
+    """
+    Render a single record as a readable line.
+    Uses heuristics to format nicely without knowing the schema.
+    """
+    parts = []
+
+    # Lead with identifiers if present
+    id_fields = ["person_id", "student_id", "dept_id", "class_id",
+                 "record_id", "hold_id", "ta_id", "advisor_id"]
+    lead_id = None
+    for idf in id_fields:
+        if idf in record:
+            lead_id = f"{record[idf]}"
+            break
+
+    # Lead with name if present
+    name = record.get("name")
+    if name and lead_id:
+        parts.append(f"{name} ({lead_id})")
+    elif lead_id:
+        parts.append(lead_id)
+    elif name:
+        parts.append(name)
+
+    # Render remaining fields
+    skip = set(id_fields) | {"name"}
+    for key, value in record.items():
+        if key in skip:
+            continue
+        if isinstance(value, list):
+            value = f"[{', '.join(str(v) for v in value)}]"
+        elif isinstance(value, float):
+            if value < 1 and value > 0:
+                value = f"{value * 100:.0f}%"
+            else:
+                value = f"{value:,.2f}"
+        elif isinstance(value, int) and value > 999:
+            value = f"${value:,}"
+
+        display_key = key.replace("_", " ").title()
+        parts.append(f"{display_key}: {value}")
+
+    return " | ".join(parts)

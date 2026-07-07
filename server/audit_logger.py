@@ -3,6 +3,9 @@ Arbiter — Audit Logger
 Non-blocking, thread-safe audit pipeline using QueueHandler + QueueListener.
 Three destinations: file (.jsonl), in-memory (API), console (terminal).
 All entries are PII-scrubbed before writing.
+
+v3.0: Logs both input governance (what was filtered) and output governance
+(what was caught in the LLM response), plus inference channels blocked.
 """
 
 import copy
@@ -93,8 +96,10 @@ class _ConsoleTarget(logging.Handler):
         try:
             sep = "=" * 60
             session = entry.get("session_context", {})
+            event_type = entry.get("event_type", "INPUT")
+
             print(f"\n{sep}")
-            print(f"  AUDIT — {entry['trace_id']}")
+            print(f"  AUDIT [{event_type}] — {entry['trace_id']}")
             print(sep)
             print(f"  Tenant    : {entry.get('tenant_id', 'N/A')}")
             print(f"  Timestamp : {entry['timestamp']}")
@@ -107,6 +112,22 @@ class _ConsoleTarget(logging.Handler):
             print(f"  Masked    : {entry['fields_masked']}")
             print(f"  TTL       : {entry.get('ttl_status', {})}")
             print(f"  Explain   : {entry['explanation']}")
+
+            # Inference channels
+            channels = entry.get("inference_channels_blocked", [])
+            if channels:
+                print(f"  Inference : {len(channels)} channel(s) blocked")
+                for ch in channels:
+                    print(f"    → {ch.get('channel_id', '?')}: {ch.get('name', '?')} [{ch.get('severity', '?')}]")
+
+            # Output governance
+            violations = entry.get("output_violations", [])
+            if violations:
+                out_decision = entry.get("output_decision", "unknown")
+                print(f"  Output    : {out_decision} — {len(violations)} violation(s)")
+                for v in violations:
+                    print(f"    → [{v.get('type', '?')}] {v.get('description', '?')}")
+
             print(sep)
         except Exception:
             self.handleError(record)
@@ -141,11 +162,24 @@ def log_entry(
     policy_decision: str,
     explanation: str,
     ttl_status: dict,
+    inference_channels_blocked: Optional[list[dict]] = None,
+    output_violations: Optional[list[dict]] = None,
+    output_decision: Optional[str] = None,
 ) -> dict:
     """Create and dispatch an audit entry through the pipeline."""
+
+    # Determine event type from what's present
+    if output_violations is not None:
+        event_type = "OUTPUT"
+    elif inference_channels_blocked:
+        event_type = "INPUT+INFERENCE"
+    else:
+        event_type = "INPUT"
+
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "trace_id": trace_id,
+        "event_type": event_type,
         "tenant_id": tenant_id,
         "user_id": identity_scope["user_id"],
         "role": identity_scope["role"],
@@ -162,6 +196,9 @@ def log_entry(
         "policy_decision": policy_decision,
         "explanation": explanation,
         "ttl_status": ttl_status,
+        "inference_channels_blocked": inference_channels_blocked or [],
+        "output_violations": output_violations or [],
+        "output_decision": output_decision,
     }
 
     record = logging.LogRecord(

@@ -1,43 +1,81 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "3.0",
   "tenant_id": "demo_university",
 
   "institution_rules": {
     "always_mask": ["ssn"],
-    "prohibited_access": [
-      { "role": "Student", "resource": "grades", "reason": "FERPA: students cannot view grade records via AI" },
-      { "role": "Student", "resource": "financial_information_others", "reason": "Students may only view own financial data" },
-      { "role": "Teacher", "resource": "financial_information_others", "reason": "Teachers may only view own salary" }
-    ],
     "pii_fields": ["ssn", "phone", "email"],
-    "financial_fields": ["annual_salary", "amount_due", "amount_paid", "balance"]
+    "financial_fields": ["annual_salary", "amount_due", "amount_paid", "balance"],
+
+    "access_rules": [
+      {
+        "rule_id": "AR-001",
+        "description": "Full-Access: unrestricted access to all sensitivity levels",
+        "clearance": "Full-Access",
+        "allowed_sensitivity": ["FERPA", "FERPA-Financial", "Institutional", "Institutional-Financial"],
+        "scope": "all"
+      },
+      {
+        "rule_id": "AR-002",
+        "description": "Department-Scoped: academic data for own classes, own salary, department info. No student standing.",
+        "clearance": "Department-Scoped",
+        "allowed_sensitivity": ["FERPA", "Institutional", "Institutional-Financial"],
+        "scope": "role_filtered",
+        "exceptions": {
+          "FERPA-Financial": "own_only"
+        }
+      },
+      {
+        "rule_id": "AR-003",
+        "description": "Self-Scoped: own records only across all FERPA categories. No institutional-financial.",
+        "clearance": "Self-Scoped",
+        "allowed_sensitivity": ["Institutional", "FERPA"],
+        "scope": "own_only",
+        "exceptions": {
+          "FERPA-Financial": "own_only",
+          "Institutional-Financial": "deny"
+        }
+      },
+      {
+        "rule_id": "AR-004",
+        "description": "Course-Scoped: academic data for assigned courses, own records otherwise. No department budgets.",
+        "clearance": "Course-Scoped",
+        "allowed_sensitivity": ["FERPA", "Institutional"],
+        "scope": "course_filtered",
+        "exceptions": {
+          "FERPA-Financial": "own_only",
+          "Institutional-Financial": "deny"
+        }
+      },
+      {
+        "rule_id": "AR-005",
+        "description": "Advisor-Scoped: academic data including standing for advisees, own salary, department info.",
+        "clearance": "Advisor-Scoped",
+        "allowed_sensitivity": ["FERPA", "Institutional", "Institutional-Financial"],
+        "scope": "role_filtered",
+        "exceptions": {
+          "FERPA-Financial": "own_only"
+        }
+      }
+    ],
+
+    "prohibited_combinations": [
+      {
+        "clearance": "Department-Scoped",
+        "sensitivity": "FERPA",
+        "resource_type": "academic_standing",
+        "reason": "FERPA: Teachers do not have legitimate educational interest in student academic standing"
+      }
+    ]
   },
 
   "resources": {
-    "persons": {
-      "origin": "StudentInformationSystem",
-      "sensitivity": "FERPA",
-      "ttl_seconds": 300,
-      "description": "Directory of all persons in the system"
-    },
-    "financial_information": {
-      "origin": "StudentInformationSystem",
-      "sensitivity": "FERPA-Financial",
-      "ttl_seconds": 120,
-      "description": "Tuition, salary, and payment records"
-    },
-    "grades": {
-      "origin": "StudentInformationSystem",
-      "sensitivity": "FERPA",
-      "ttl_seconds": 300,
-      "description": "Academic grade records"
-    },
-    "classes": {
-      "origin": "StudentInformationSystem",
-      "sensitivity": "Institutional",
-      "ttl_seconds": 600,
-      "description": "Course schedules, enrollment, and room assignments"
-    }
+    "persons": { "origin": "StudentInformationSystem", "sensitivity": "FERPA", "ttl_seconds": 300, "description": "Directory of all persons in the system" },
+    "financial_information": { "origin": "StudentInformationSystem", "sensitivity": "FERPA-Financial", "ttl_seconds": 120, "description": "Tuition, salary, and payment records" },
+    "grades": { "origin": "StudentInformationSystem", "sensitivity": "FERPA", "ttl_seconds": 300, "description": "Academic grade records", "scope_key": "student_id" },
+    "academic_standing": { "origin": "StudentInformationSystem", "sensitivity": "FERPA", "ttl_seconds": 300, "description": "GPA, dean's list, probation status, credits completed", "scope_key": "student_id" },
+    "classes": { "origin": "StudentInformationSystem", "sensitivity": "Institutional", "ttl_seconds": 600, "description": "Course schedules, enrollment, and room assignments" },
+    "departments": { "origin": "InstitutionalPlanning", "sensitivity": "Institutional-Financial", "ttl_seconds": 600, "description": "Department budgets, faculty counts, and operating data" }
   },
 
   "model_config": {

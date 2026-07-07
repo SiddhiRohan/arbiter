@@ -1,8 +1,16 @@
 """
-Arbiter — Policy Engine
-Loads role definitions and institution rules from JSON config files.
-Evaluates per-request access decisions: what resources to allow, deny, and mask.
-Three-tier precedence: Institution --> Role --> User overrides.
+Arbiter — Policy Engine (ABAC)
+Evaluates access using Attribute-Based Access Control:
+  clearance (role attribute) × sensitivity (resource attribute) → decision
+
+No hardcoded resource lists. Adding a resource with a known sensitivity level
+automatically inherits the correct access rules. Adding a role with a known
+clearance level automatically resolves permissions against all resources.
+
+Three-tier precedence:
+  1. Access rules (clearance → allowed sensitivities)
+  2. Exceptions (sensitivity-level overrides like own_only, deny)
+  3. Prohibited combinations (specific clearance + resource blocks)
 """
 
 import json
@@ -40,8 +48,8 @@ class PolicyDecision:
 
 class PolicyEngine:
     """
-    Evaluates access policies for a given tenant, role, and user.
-    All rules are loaded from config files — nothing is hardcoded.
+    ABAC policy engine. Resolves access by evaluating role clearance
+    against resource sensitivity using rules from policies.json.
     """
 
     def __init__(self, tenant_id: str = "demo_university"):
@@ -51,6 +59,10 @@ class PolicyEngine:
         self._institution = self.policies["institution_rules"]
         self._resources = self.policies["resources"]
         self._roles = self.roles_config["roles"]
+        self._access_rules = {
+            rule["clearance"]: rule
+            for rule in self._institution.get("access_rules", [])
+        }
 
     def get_available_roles(self) -> list[str]:
         return list(self._roles.keys())
@@ -78,54 +90,111 @@ class PolicyEngine:
 
     def evaluate(self, role: str, user_id: str) -> PolicyDecision:
         """
-        Determine what a user with the given role can access.
-        Returns a PolicyDecision with all access details.
+        Evaluate ABAC policies for a role + user.
+
+        Resolution order for each resource:
+          1. Look up role's clearance
+          2. Find matching access rule for that clearance
+          3. Check if resource sensitivity is in allowed_sensitivity
+          4. Check exceptions for that sensitivity level
+          5. Check prohibited_combinations for specific blocks
+          6. Result: authorized (with scope) or denied (with reason)
         """
         role_cfg = self._roles.get(role)
         if not role_cfg:
             return PolicyDecision(
                 authorized_resources=[],
                 denied_resources=list(self._resources.keys()),
-                mask_fields=self._institution["always_mask"],
+                mask_fields=self._institution.get("always_mask", []),
                 denial_reasons=[{"reason": f"Unknown role: {role}"}],
                 decision="DENY",
                 explanation=f"Role '{role}' is not recognized. All access denied.",
             )
 
-        all_resource_ids = list(self._resources.keys())
-        authorized = list(role_cfg["allowed_resources"])
+        clearance = role_cfg.get("clearance", "Unknown")
+        access_rule = self._access_rules.get(clearance)
 
-        # Financial info: add to authorized if role has any financial scope
-        if role_cfg.get("can_view_others_financial") or role_cfg.get("financial_scope"):
-            if "financial_information" not in authorized:
-                authorized.append("financial_information")
+        if not access_rule:
+            return PolicyDecision(
+                authorized_resources=[],
+                denied_resources=list(self._resources.keys()),
+                mask_fields=self._institution.get("always_mask", []),
+                denial_reasons=[{"reason": f"No access rule for clearance: {clearance}"}],
+                decision="DENY",
+                explanation=f"Clearance '{clearance}' has no matching access rule. All access denied.",
+            )
 
-        denied = [r for r in all_resource_ids if r not in authorized]
+        allowed_sensitivity = set(access_rule.get("allowed_sensitivity", []))
+        exceptions = access_rule.get("exceptions", {})
+        prohibited = self._institution.get("prohibited_combinations", [])
 
-        # Collect denial reasons from prohibited_access rules
+        authorized = []
+        denied = []
         denial_reasons = []
-        for rule in self._institution.get("prohibited_access", []):
-            if rule["role"] == role:
+        is_scoped = False
+
+        for resource_id, resource_meta in self._resources.items():
+            sensitivity = resource_meta.get("sensitivity", "Restricted")
+
+            # Step 1: Check prohibited combinations (highest precedence)
+            is_prohibited = False
+            for rule in prohibited:
+                if (rule.get("clearance") == clearance
+                        and rule.get("sensitivity") == sensitivity
+                        and rule.get("resource_type") == resource_id):
+                    denied.append(resource_id)
+                    denial_reasons.append({
+                        "resource": resource_id,
+                        "reason": rule.get("reason", "Prohibited by policy"),
+                    })
+                    is_prohibited = True
+                    break
+
+            if is_prohibited:
+                continue
+
+            # Step 2: Check exceptions for this sensitivity level
+            if sensitivity in exceptions:
+                exception_action = exceptions[sensitivity]
+
+                if exception_action == "deny":
+                    denied.append(resource_id)
+                    denial_reasons.append({
+                        "resource": resource_id,
+                        "reason": f"Denied by exception: {clearance} cannot access {sensitivity} resources",
+                    })
+                    continue
+                elif exception_action == "own_only":
+                    # Authorized but scoped — filter_data handles the actual scoping
+                    authorized.append(resource_id)
+                    is_scoped = True
+                    continue
+                elif exception_action == "deny_standing":
+                    # Specific exception: deny this resource type even though sensitivity is allowed
+                    if resource_id == "academic_standing":
+                        denied.append(resource_id)
+                        denial_reasons.append({
+                            "resource": resource_id,
+                            "reason": f"Standing denied for {clearance} clearance",
+                        })
+                        continue
+                    else:
+                        # Other resources with this sensitivity are still allowed
+                        authorized.append(resource_id)
+                        continue
+
+            # Step 3: Check if sensitivity is in allowed list
+            if sensitivity in allowed_sensitivity:
+                authorized.append(resource_id)
+            else:
+                denied.append(resource_id)
                 denial_reasons.append({
-                    "resource": rule["resource"],
-                    "reason": rule["reason"],
+                    "resource": resource_id,
+                    "reason": f"{clearance} clearance cannot access {sensitivity} resources",
                 })
 
-        # Additional denials based on role restrictions
-        if not role_cfg.get("can_view_grades", False) and "grades" not in denied:
-            denied.append("grades")
-            if "grades" in authorized:
-                authorized.remove("grades")
-
-        # Track scoped access as implicit denials
-        is_scoped = False
-        scope = role_cfg.get("financial_scope")
-        if scope == "own_only" and not role_cfg.get("can_view_others_financial", False):
-            is_scoped = True
-            denied.append("financial_information_others")
-
         # Mask fields: institution-level + role-level overrides
-        mask_fields = list(self._institution["always_mask"])
+        mask_fields = list(self._institution.get("always_mask", []))
         mask_fields.extend(role_cfg.get("mask_overrides", []))
         mask_fields = list(set(mask_fields))
 
@@ -137,7 +206,9 @@ class PolicyEngine:
         else:
             decision = "ALLOW_FULL"
 
-        explanation = self._build_explanation(role, role_cfg, authorized, denied, mask_fields, decision)
+        explanation = self._build_explanation(
+            role, clearance, authorized, denied, mask_fields, decision, is_scoped
+        )
 
         return PolicyDecision(
             authorized_resources=authorized,
@@ -149,11 +220,11 @@ class PolicyEngine:
         )
 
     def _build_explanation(
-        self, role: str, role_cfg: dict,
+        self, role: str, clearance: str,
         authorized: list[str], denied: list[str],
-        mask_fields: list[str], decision: str,
+        mask_fields: list[str], decision: str, is_scoped: bool,
     ) -> str:
-        parts = [f"{role} ({role_cfg['clearance']}) requested data."]
+        parts = [f"{role} (clearance: {clearance}) requested data."]
 
         if decision == "ALLOW_FULL":
             parts.append(f"Full access granted to: {', '.join(authorized)}.")
@@ -161,14 +232,13 @@ class PolicyEngine:
             parts.append(f"Granted: {', '.join(authorized)}.")
             if denied:
                 parts.append(f"Denied: {', '.join(denied)}.")
-            scope = role_cfg.get("financial_scope")
-            if scope == "own_only":
-                parts.append("Financial data restricted to own records only.")
+            if is_scoped:
+                parts.append("Some resources scoped to own records only.")
         else:
             parts.append("All access denied.")
 
         if mask_fields:
-            parts.append(f"Masked fields: {', '.join(mask_fields)} (institution-level policy).")
+            parts.append(f"Masked: {', '.join(mask_fields)} (institution policy).")
 
         parts.append(f"Decision: {decision}.")
         return " ".join(parts)

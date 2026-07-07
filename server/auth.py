@@ -8,30 +8,54 @@ import uuid
 import time
 from typing import Optional
 
-# Demo credentials -- in production this would be a database or SSO integration
-# Keyed by username, maps to user_id, role, and display label
+# Demo credentials — person_ids map to demo_university.json
+# In production this would be a database or SSO integration
 DEMO_CREDENTIALS = {
     "admin": {
         "password": "admin",
-        "user_id": "P003",
+        "user_id": "P012",
         "role": "Admin",
-        "label": "Robert Torres",
+        "label": "Robert Torres (Dean of Students)",
     },
     "teacher": {
         "password": "teacher",
-        "user_id": "P002",
+        "user_id": "P009",
         "role": "Teacher",
-        "label": "Sarah Chen",
+        "label": "Sarah Chen (CS, Associate Prof)",
+    },
+    "teacher2": {
+        "password": "teacher2",
+        "user_id": "P010",
+        "role": "Teacher",
+        "label": "James Washington (CS, Asst Prof)",
+    },
+    "advisor": {
+        "password": "advisor",
+        "user_id": "P011",
+        "role": "Advisor",
+        "label": "Priya Sharma (Math, Professor)",
     },
     "student": {
         "password": "student",
         "user_id": "P001",
         "role": "Student",
-        "label": "Alex Rivera",
+        "label": "Alex Rivera (CS, Sophomore)",
+    },
+    "student2": {
+        "password": "student2",
+        "user_id": "P004",
+        "role": "Student",
+        "label": "Carlos Mendez (Math, Freshman)",
+    },
+    "ta": {
+        "password": "ta",
+        "user_id": "P003",
+        "role": "TA",
+        "label": "Lena Kowalski (CS, Senior — TA for CS101)",
     },
 }
 
-# In-memory session store -- maps session_id to user info + expiry
+# In-memory session store — maps session_id to user info + expiry
 _sessions: dict[str, dict] = {}
 SESSION_TTL_SECONDS = 3600  # 1 hour
 
@@ -81,6 +105,57 @@ def validate_session(session_id: str) -> Optional[dict]:
 def destroy_session(session_id: str) -> bool:
     """Remove a session (logout). Returns True if session existed."""
     return _sessions.pop(session_id, None) is not None
+
+
+class AuthorizationError(Exception):
+    """Raised when a request cannot be bound to a valid authenticated identity."""
+
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(detail)
+
+
+def resolve_session_identity(
+    session_id: Optional[str],
+    claimed_role: Optional[str] = None,
+    claimed_user_id: Optional[str] = None,
+) -> dict:
+    """
+    Bind a request to its authenticated identity (ADV-01 fix).
+
+    The role and user_id used for governance are ALWAYS taken from the
+    validated server-side session — NEVER from client-supplied values. This
+    closes the privilege-escalation gap where a caller could send
+    role="Admin" in the request body and receive Admin data.
+
+    Any client-supplied role/user_id are accepted only to DETECT tampering;
+    they never influence the authorization decision.
+
+    Returns: {"user_id", "role", "label", "tampered": bool}
+    Raises:  AuthorizationError(401) if the session is missing/invalid/expired.
+    """
+    if not session_id:
+        raise AuthorizationError(401, "Authentication required: no session_id provided.")
+
+    session = validate_session(session_id)
+    if not session:
+        raise AuthorizationError(401, "Invalid or expired session.")
+
+    authoritative_role = session["role"]
+    authoritative_user = session["user_id"]
+
+    tampered = (
+        (claimed_role is not None and claimed_role != authoritative_role)
+        or (claimed_user_id is not None and claimed_user_id != authoritative_user)
+    )
+
+    return {
+        "user_id": authoritative_user,
+        "role": authoritative_role,
+        "label": session.get("label", ""),
+        "tampered": tampered,
+    }
 
 
 def get_active_sessions() -> list[dict]:

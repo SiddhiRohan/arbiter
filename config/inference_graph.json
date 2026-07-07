@@ -1,0 +1,108 @@
+{
+  "schema_version": "2.0",
+  "tenant_id": "demo_university",
+  "description": "Template-based inference channel detection.",
+  "inference_channels": [],
+  "channel_templates": [
+    {
+      "template_id": "T-BUDGET",
+      "name": "Aggregate budget decomposition",
+      "match": {
+        "aggregate_field": "total_budget",
+        "count_field": "num_faculty"
+      },
+      "derives": "individual_component_values",
+      "method": "(aggregate - own_value) / (count - 1)",
+      "severity": "high",
+      "withheld_field_pattern": "{resource}.total_budget",
+      "applicable_scopes": ["own_only"],
+      "applicable_roles": ["Teacher", "Advisor"],
+      "compliance": "FERPA-Financial"
+    },
+    {
+      "template_id": "T-AVERAGE",
+      "name": "Average-based individual derivation",
+      "match": {
+        "average_field": "class_average",
+        "members_field": "enrolled_students",
+        "values_resource": "grades"
+      },
+      "derives": "hidden_individual_value",
+      "method": "(average * count - sum_visible) / num_hidden",
+      "severity": "high",
+      "withheld_field_pattern": "{resource}.class_average",
+      "applicable_scopes": ["own_classes", "advisees_only", "assigned_courses_only"],
+      "applicable_roles": ["Advisor", "TA"],
+      "compliance": "FERPA"
+    },
+    {
+      "template_id": "T-THRESHOLD",
+      "name": "Threshold-based status inference",
+      "match": {
+        "value_field": "gpa",
+        "threshold": 2.0,
+        "inferred_status": "academic_probation"
+      },
+      "derives": "binary_status_from_threshold",
+      "method": "value < threshold implies status",
+      "severity": "medium",
+      "withheld_field_pattern": "{resource}.gpa",
+      "applicable_scopes": ["none"],
+      "applicable_roles": ["Advisor"],
+      "compliance": "FERPA"
+    },
+    {
+      "template_id": "T-TREND",
+      "name": "Trend-based prediction",
+      "match": {
+        "sequence_field": "semester_gpas",
+        "warning_field": "academic_warnings"
+      },
+      "derives": "at_risk_prediction",
+      "method": "declining_trend + warnings > 0 = at_risk",
+      "severity": "medium",
+      "withheld_field_pattern": "{resource}.semester_gpas",
+      "applicable_scopes": ["none"],
+      "applicable_roles": ["Advisor"],
+      "compliance": "FERPA"
+    },
+    {
+      "template_id": "T-AID-TYPE",
+      "name": "Employment relationship from aid type",
+      "match": {
+        "type_field": "financial_aid_type",
+        "type_value": "Employment-Based",
+        "reveals_field": "scholarship"
+      },
+      "derives": "compensation_status",
+      "method": "aid_type=Employment-Based + scholarship reveals TA compensation",
+      "severity": "medium",
+      "withheld_field_pattern": "financial_information.scholarship",
+      "applicable_scopes": ["all"],
+      "applicable_roles": ["Admin"],
+      "compliance": "FERPA-Financial"
+    },
+    {
+      "template_id": "T-RAISE",
+      "name": "Historical salary from raise data",
+      "match": {
+        "years_field": "years_at_institution",
+        "raise_field": "last_raise_percent"
+      },
+      "derives": "historical_salary",
+      "method": "current_salary / (1 + raise%) = previous salary",
+      "severity": "low",
+      "withheld_field_pattern": "financial_information.last_raise_percent",
+      "applicable_scopes": ["all"],
+      "applicable_roles": ["Admin"],
+      "compliance": "FERPA-Financial"
+    }
+  ],
+  "detection_config": {
+    "enable_runtime_detection": true,
+    "log_detected_channels": true,
+    "auto_withhold": true,
+    "fallback_action": "withhold_and_log",
+    "template_matching": true
+  }
+}
