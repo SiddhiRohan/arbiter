@@ -335,7 +335,4 @@ MIT
 ---
 
 <p align="center">
-  <strong>Made at HackPSU Spring 2026</strong>
-  <br/>
-  <em>by Krishna Kishore Buddi</em>
 </p>
