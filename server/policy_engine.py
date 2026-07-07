@@ -81,7 +81,7 @@ class PolicyEngine:
 
     def get_model_config(self) -> dict:
         return self.policies.get("model_config", {
-            "model_id": "claude-sonnet-4-20250514",
+            "model_id": "claude-opus-4-8",
             "provider": "Anthropic",
             "compliance": "SOC2-certified",
             "risk_level": "low",

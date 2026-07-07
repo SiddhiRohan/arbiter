@@ -13,6 +13,15 @@ import sys
 import traceback
 from contextlib import asynccontextmanager
 
+# Force UTF-8 console output so non-ASCII log characters (→, ⚠, —, ✓) don't
+# raise UnicodeEncodeError on Windows consoles (cp1252). Without this, printing
+# an arrow in the governance pipeline crashes the request handler → blank output.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -172,7 +181,7 @@ def call_llm(user_message: str, filtered_context: str, role: str) -> str:
         )
 
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-opus-4-8",
             max_tokens=1024,
             system=system_prompt,
             messages=[{"role": "user", "content": user_message}],
@@ -356,7 +365,7 @@ async def chat_ungoverned(request: UngovernedRequest):
         client = anthropic.Anthropic(api_key=key)
 
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-opus-4-8",
             max_tokens=1024,
             system=(
                 f"You are a university data assistant. Answer the user's question using the data below. "
