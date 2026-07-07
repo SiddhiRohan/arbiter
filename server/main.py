@@ -53,7 +53,7 @@ engine = ArbiterEngine(tenant_id="demo_university")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[ok] Arbiter v3.0 starting — bidirectional governance active", flush=True)
+    print("[ok] Arbiter v3.0 starting - bidirectional governance active", flush=True)
     yield
     shutdown()
     print("[ok] Arbiter shut down.", flush=True)
@@ -248,7 +248,7 @@ async def chat(request: ChatRequest):
             channels = result["inference_channels_blocked"]
             print(f"[!!] Inference control: {len(channels)} channel(s) blocked", flush=True)
             for ch in channels:
-                print(f"    → {ch['channel_id']}: {ch['name']}", flush=True)
+                print(f"    -> {ch['channel_id']}: {ch['name']}", flush=True)
 
         # ── LLM CALL ──
         raw_llm_response = call_llm(
@@ -268,7 +268,7 @@ async def chat(request: ChatRequest):
 
         if output_result["violations"]:
             print(
-                f"[!!] Output governance: {len(output_result['violations'])} violation(s) — "
+                f"[!!] Output governance: {len(output_result['violations'])} violation(s) - "
                 f"decision: {output_result['decision']}",
                 flush=True,
             )
@@ -288,7 +288,7 @@ async def chat(request: ChatRequest):
             )
             print(f"[!!] Cross-query inference: {len(cross_violations)} violation(s)", flush=True)
             for cv in cross_violations:
-                print(f"    → {cv['channel_id']}: {cv['name']}", flush=True)
+                print(f"    -> {cv['channel_id']}: {cv['name']}", flush=True)
 
         final_response = output_result.get("sanitized_response", raw_llm_response)
 

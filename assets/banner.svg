@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="Arbiter — Control what AI sees. Verify what AI says.">
+  <defs>
+    <pattern id="hexlattice" width="84" height="97" patternUnits="userSpaceOnUse" patternTransform="translate(0,0)">
+      <path d="M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z" fill="none" stroke="#141920" stroke-width="1" transform="translate(14,8)"/>
+      <path d="M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z" fill="none" stroke="#141920" stroke-width="1" transform="translate(56,56)"/>
+    </pattern>
+    <linearGradient id="scanline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ff47" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#e8ff47" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#e8ff47" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.75">
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.45"/>
+    </radialGradient>
+  </defs>
+
+  <style>
+    .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+    .wm   { font-weight: 800; font-size: 92px; letter-spacing: 0.08em; }
+    .w1   { fill: #eef3f8; }
+    .w2   { fill: #e8ff47; }
+    .tagline { font-size: 20px; fill: #c9d3dd; letter-spacing: 0.06em; }
+    .tagline .em { fill: #e8ff47; }
+    .sub  { font-size: 12px; fill: #5c6875; letter-spacing: 0.34em; }
+    .stat { font-size: 11px; fill: #5c6875; letter-spacing: 0.22em; }
+    .ok   { fill: #3ddc84; }
+
+    .fadein  { opacity: 0; animation: fadein 0.9s ease forwards; }
+    .d1 { animation-delay: 0.15s; } .d2 { animation-delay: 0.45s; }
+    .d3 { animation-delay: 0.75s; } .d4 { animation-delay: 1.05s; }
+    @keyframes fadein { to { opacity: 1; } }
+
+    .hexdraw { stroke-dasharray: 620; stroke-dashoffset: 620; animation: draw 1.6s cubic-bezier(0.5,0,0.3,1) 0.2s forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    .corein { opacity: 0; animation: corein 0.5s ease 1.5s forwards; }
+    @keyframes corein { from { opacity: 0; } to { opacity: 1; } }
+
+    .scan { animation: sweep 5.5s cubic-bezier(0.6,0.05,0.35,1) 1.2s infinite; }
+    @keyframes sweep {
+      0%   { transform: translateY(-6px); opacity: 0; }
+      6%   { opacity: 1; }
+      42%  { transform: translateY(326px); opacity: 1; }
+      48%  { opacity: 0; }
+      100% { transform: translateY(326px); opacity: 0; }
+    }
+
+    .pulse { animation: pulse 2.2s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    .rulegrow { transform-origin: 600px 0; transform: scaleX(0); animation: grow 1s cubic-bezier(0.2,0.9,0.3,1) 1.3s forwards; }
+    @keyframes grow { to { transform: scaleX(1); } }
+  </style>
+
+  <!-- backdrop -->
+  <rect width="1200" height="320" fill="#0a0c0f"/>
+  <rect width="1200" height="320" fill="url(#hexlattice)"/>
+  <rect width="1200" height="320" fill="url(#vignette)"/>
+
+  <!-- corner brackets -->
+  <g stroke="#e8ff47" stroke-width="2" fill="none" opacity="0.85">
+    <path class="fadein d3" d="M28 62 L28 30 L60 30"/>
+    <path class="fadein d3" d="M1140 30 L1172 30 L1172 62"/>
+    <path class="fadein d3" d="M28 258 L28 290 L60 290"/>
+    <path class="fadein d3" d="M1140 290 L1172 290 L1172 258"/>
+  </g>
+
+  <!-- perimeter metadata -->
+  <text class="mono stat fadein d4" x="84" y="42">PERIMETER · <tspan class="ok">SEALED</tspan></text>
+  <text class="mono stat fadein d4" x="1116" y="42" text-anchor="end">AUDIT · <tspan class="ok">ACTIVE</tspan></text>
+  <text class="mono stat fadein d4" x="84" y="296">RBAC · <tspan class="ok">ENFORCED</tspan></text>
+  <text class="mono stat fadein d4" x="1116" y="296" text-anchor="end">INFERENCE · <tspan class="ok">CLOSED</tspan></text>
+
+  <!-- mark: hexagon + sealed core -->
+  <g transform="translate(378,88)">
+    <path class="hexdraw" d="M42 4 L76 23 L76 61 L42 80 L8 61 L8 23 Z" fill="none" stroke="#e8ff47" stroke-width="7" stroke-linejoin="round"/>
+    <rect class="corein" x="34.5" y="34.5" width="15" height="15" fill="#e8ff47" transform="rotate(45 42 42)"/>
+  </g>
+
+  <!-- wordmark -->
+  <text class="mono wm fadein d1" x="478" y="162"><tspan class="w1">ARBI</tspan><tspan class="w2">TER</tspan></text>
+
+  <!-- rule -->
+  <rect class="rulegrow" x="330" y="188" width="540" height="1.5" fill="url(#scanline)"/>
+
+  <!-- tagline -->
+  <text class="mono tagline fadein d2" x="600" y="224" text-anchor="middle">Control what AI <tspan class="em">sees</tspan>. Verify what AI <tspan class="em">says</tspan>.</text>
+  <text class="mono sub fadein d3" x="600" y="256" text-anchor="middle">BIDIRECTIONAL GOVERNANCE MIDDLEWARE FOR LLM APPLICATIONS</text>
+
+  <!-- live dot -->
+  <circle class="pulse fadein d4" cx="600" cy="290" r="3.5" fill="#3ddc84"/>
+
+  <!-- scanline sweep -->
+  <rect class="scan" x="0" y="0" width="1200" height="2.5" fill="url(#scanline)"/>
+</svg>

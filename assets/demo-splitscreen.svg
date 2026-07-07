@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="880" height="540" role="img" aria-label="Arbiter split-screen demo: ungoverned vs governed">
+  <style>
+    .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+    text { fill: #c9d3dd; }
+    .bright { fill: #eef3f8; } .dim { fill: #5c6875; } .faint { fill: #38424e; }
+    .acid { fill: #e8ff47; } .red { fill: #ff4d5e; } .redlt { fill: #ffb0b8; }
+    .green { fill: #3ddc84; } .money { fill: #ffd9dd; font-weight: 700; }
+    .h10 { font-size: 10px; letter-spacing: 0.18em; }
+    .h11 { font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
+    .t13 { font-size: 13px; }
+    .t14 { font-size: 14px; }
+    .serif { font-family: Georgia, "Times New Roman", serif; font-size: 19px; }
+
+    .all { animation: master 20s linear infinite; }
+    @keyframes master { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* typing: clip rect width steps over monospace text */
+    .typeclip { animation: typew 20s linear infinite; }
+    @keyframes typew {
+      0%, 3% { width: 0; animation-timing-function: steps(29, end); }
+      14%, 100% { width: 420px; }
+    }
+    .caret { animation: caret 20s linear infinite; }
+    @keyframes caret {
+      0%, 2% { opacity: 0; } 3%, 13% { opacity: 1; } 15%, 100% { opacity: 0; }
+    }
+
+    /* pop-in windows */
+    .p18 { animation: p18 20s linear infinite; } @keyframes p18 { 0%,17.5% {opacity:0} 18%,100% {opacity:1} }
+    .p22 { animation: p22 20s linear infinite; } @keyframes p22 { 0%,21.5% {opacity:0} 22%,100% {opacity:1} }
+    .p26 { animation: p26 20s linear infinite; } @keyframes p26 { 0%,25.5% {opacity:0} 26%,100% {opacity:1} }
+    .p30 { animation: p30 20s linear infinite; } @keyframes p30 { 0%,29.5% {opacity:0} 30%,100% {opacity:1} }
+    .p36 { animation: p36 20s linear infinite; } @keyframes p36 { 0%,35.5% {opacity:0} 36%,100% {opacity:1} }
+    .p33 { animation: p33 20s linear infinite; } @keyframes p33 { 0%,32.5% {opacity:0} 33%,100% {opacity:1} }
+    .p40 { animation: p40 20s linear infinite; } @keyframes p40 { 0%,39.5% {opacity:0} 40%,100% {opacity:1} }
+    .p47 { animation: p47 20s linear infinite; } @keyframes p47 { 0%,46.5% {opacity:0} 47%,100% {opacity:1} }
+    .p54 { animation: p54 20s linear infinite; } @keyframes p54 { 0%,53.5% {opacity:0} 54%,100% {opacity:1} }
+    .p60 { animation: p60 20s linear infinite; } @keyframes p60 { 0%,59.5% {opacity:0} 60%,100% {opacity:1} }
+    .p66 { animation: p66 20s linear infinite; } @keyframes p66 { 0%,65.5% {opacity:0} 66%,100% {opacity:1} }
+    .p74 { animation: p74 20s linear infinite; } @keyframes p74 { 0%,73.5% {opacity:0} 74%,100% {opacity:1} }
+  </style>
+
+  <rect width="880" height="540" rx="8" fill="#0a0c0f"/>
+
+  <g class="all">
+    <!-- header -->
+    <path d="M32 16 L44 23 L44 37 L32 44 L20 37 L20 23 Z" fill="none" stroke="#e8ff47" stroke-width="3.5" stroke-linejoin="round"/>
+    <rect x="28.5" y="26.5" width="7" height="7" fill="#e8ff47" transform="rotate(45 32 30)"/>
+    <text class="mono h11 bright" x="56" y="35">ARBI<tspan class="acid">TER</tspan></text>
+    <rect x="146" y="20" width="150" height="20" rx="3" fill="none" stroke="#1d232c"/>
+    <text class="mono h10 dim" x="156" y="34">SPLIT-SCREEN DEMO</text>
+    <text class="mono t13 dim" x="856" y="34" text-anchor="end">role <tspan class="bright">student · Alex Rivera</tspan></text>
+    <line x1="0" y1="56" x2="880" y2="56" stroke="#1d232c"/>
+
+    <!-- query bar -->
+    <text class="mono h10 dim" x="24" y="86">QUERY</text>
+    <rect x="86" y="68" width="620" height="30" rx="6" fill="#0e1216" stroke="#26303c"/>
+    <clipPath id="tclip"><rect class="typeclip" x="98" y="68" height="30"/></clipPath>
+    <text class="mono t14 bright" x="98" y="88" clip-path="url(#tclip)">Show me all financial records.</text>
+    <rect class="caret" x="100" y="74" width="6" height="18" fill="#e8ff47"/>
+    <rect x="718" y="68" width="86" height="30" rx="5" fill="#e8ff47"/>
+    <text class="mono h10" x="761" y="88" text-anchor="middle" fill="#0a0c0f" font-weight="800">RUN BOTH</text>
+    <line x1="0" y1="112" x2="880" y2="112" stroke="#1d232c"/>
+
+    <!-- pane split -->
+    <line x1="440" y1="112" x2="440" y2="500" stroke="#1d232c"/>
+    <rect x="0" y="112" width="440" height="30" fill="rgba(255,77,94,0.05)"/>
+    <rect x="440" y="112" width="440" height="30" fill="rgba(232,255,71,0.04)"/>
+    <text class="mono h11 red" x="24" y="132">UNGOVERNED</text>
+    <text class="mono h10 dim" x="416" y="132" text-anchor="end">raw LLM · full database</text>
+    <text class="mono h11 acid" x="464" y="132">GOVERNED · ARBITER</text>
+    <text class="mono h10 dim" x="856" y="132" text-anchor="end">policy-filtered · verified</text>
+    <line x1="0" y1="142" x2="880" y2="142" stroke="#1d232c"/>
+
+    <!-- LEFT: the dump -->
+    <g class="p18">
+      <text class="mono h10 faint" x="24" y="172">FACULTY SALARIES</text>
+      <text class="mono t13" x="24" y="196">Sarah Chen (CS)  <tspan class="money">$95,000</tspan>  <tspan class="redlt">SSN 523-41-8892</tspan></text>
+      <text class="mono h10 red" x="416" y="196" text-anchor="end">LEAK</text>
+    </g>
+    <g class="p22">
+      <text class="mono t13" x="24" y="222">James Washington  <tspan class="money">$188,000</tspan>  <tspan class="redlt">SSN 610-77-2035</tspan></text>
+      <text class="mono h10 red" x="416" y="222" text-anchor="end">LEAK</text>
+    </g>
+    <g class="p26">
+      <text class="mono h10 faint" x="24" y="254">DEPARTMENT</text>
+      <text class="mono t13" x="24" y="278">CS total budget  <tspan class="money">$283,000</tspan></text>
+      <text class="mono h10 red" x="416" y="278" text-anchor="end">LEAK</text>
+    </g>
+    <g class="p30">
+      <text class="mono h10 faint" x="24" y="310">STUDENT ACCOUNTS</text>
+      <text class="mono t13" x="24" y="334">Carlos Mendez  <tspan class="redlt">delinquent · $4,210 owed</tspan></text>
+      <text class="mono h10 red" x="416" y="334" text-anchor="end">LEAK</text>
+    </g>
+    <g class="p36">
+      <line x1="24" y1="358" x2="416" y2="358" stroke="#1d232c"/>
+      <text class="mono h10 red" x="24" y="382">◼ 14 UNAUTHORIZED FIELDS · 2 SSNs IN PLAINTEXT</text>
+    </g>
+
+    <!-- RIGHT: the governed answer -->
+    <g class="p33">
+      <text class="mono h10 faint" x="464" y="172">YOUR RECORDS — ALEX RIVERA</text>
+      <text class="mono t13" x="464" y="196">Tuition balance  <tspan class="green">$1,850</tspan></text>
+    </g>
+    <g class="p40">
+      <text class="mono t13" x="464" y="222">Financial aid  <tspan class="green">merit scholarship · active</tspan></text>
+    </g>
+    <g class="p47">
+      <text class="mono t13" x="464" y="248">SSN  <tspan class="acid" font-weight="700">***-**-1847</tspan></text>
+    </g>
+    <g class="p54">
+      <text class="mono h10 faint" x="464" y="286">WITHHELD BY POLICY</text>
+      <text class="mono t13" x="464" y="310">Faculty salaries</text>
+      <text class="mono h10 dim" x="856" y="310" text-anchor="end">DENIED · role scope</text>
+    </g>
+    <g class="p60">
+      <text class="mono t13" x="464" y="336">Department budgets</text>
+      <text class="mono h10 dim" x="856" y="336" text-anchor="end">DENIED · role scope</text>
+      <text class="mono t13" x="464" y="362">Other students’ accounts</text>
+      <text class="mono h10 dim" x="856" y="362" text-anchor="end">DENIED · self-scoped</text>
+    </g>
+    <g class="p66">
+      <line x1="464" y1="386" x2="856" y2="386" stroke="#1d232c"/>
+      <text class="mono h10 green" x="464" y="410">◼ SELF-SCOPED · SSN MASKED · 0 LEAKS</text>
+    </g>
+
+    <!-- verdict -->
+    <g class="p74">
+      <rect x="180" y="452" width="520" height="58" rx="6" fill="#0e1216" stroke="rgba(232,255,71,0.4)"/>
+      <rect x="180" y="452" width="3" height="58" fill="#e8ff47"/>
+      <text class="serif bright" x="440" y="478" text-anchor="middle">Same model. Same question. <tspan class="acid" font-style="italic">One is a violation.</tspan></text>
+      <text class="mono h10 dim" x="440" y="498" text-anchor="middle">EVERY DECISION LOGGED · REQ #7C2E</text>
+    </g>
+  </g>
+</svg>

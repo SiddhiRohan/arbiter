@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 640" width="880" height="640" role="img" aria-label="Arbiter bidirectional enforcement pipeline">
+  <style>
+    .mono  { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+    .lbl   { font-size: 13px; fill: #eef3f8; font-weight: 600; }
+    .num   { font-size: 10px; fill: #5c6875; letter-spacing: 0.1em; }
+    .desc  { font-size: 10.5px; fill: #7d8894; }
+    .head  { font-size: 11px; letter-spacing: 0.3em; fill: #5c6875; }
+    .io    { font-size: 12px; fill: #c9d3dd; letter-spacing: 0.1em; }
+    .accent{ fill: #e8ff47; }
+    .flowline { stroke: #26303c; stroke-width: 1.5; fill: none; }
+    .arrowhead { fill: #26303c; }
+    .pulse { animation: pulse 2.4s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  </style>
+
+  <rect width="880" height="640" fill="#0a0c0f" rx="8"/>
+
+  <!-- ══════════ INPUT SIDE ══════════ -->
+  <text class="mono head" x="60" y="42">INPUT GOVERNANCE — BEFORE THE MODEL SEES ANYTHING</text>
+
+  <text class="mono io" x="60" y="76">▸ USER QUERY</text>
+  <path class="flowline" d="M118 84 L118 100"/><path class="arrowhead" d="M114 98 L122 98 L118 106 Z"/>
+
+  <!-- input steps: two columns -->
+  <g>
+    <!-- col 1 -->
+    <g transform="translate(60,112)">
+      <rect width="360" height="52" rx="6" fill="#101318" stroke="#1d232c"/>
+      <text class="mono num" x="14" y="21">01–02</text>
+      <text class="mono lbl" x="14" y="38">Identity → ABAC policy</text>
+      <text class="mono desc" x="200" y="30">clearance × sensitivity</text>
+    </g>
+    <g transform="translate(60,174)">
+      <rect width="360" height="52" rx="6" fill="#101318" stroke="#1d232c"/>
+      <text class="mono num" x="14" y="21">03</text>
+      <text class="mono lbl" x="14" y="38">Query intent</text>
+      <text class="mono desc" x="200" y="30">minimum necessary</text>
+      <text class="mono desc" x="200" y="43">(FERPA / HIPAA)</text>
+    </g>
+    <g transform="translate(60,236)">
+      <rect width="360" height="52" rx="6" fill="#12160e" stroke="rgba(232,255,71,0.35)"/>
+      <text class="mono num accent" x="14" y="21">04</text>
+      <text class="mono lbl accent" x="14" y="38">Inference control</text>
+      <text class="mono desc" x="200" y="30">can allowed fields</text>
+      <text class="mono desc" x="200" y="43">derive denied ones?</text>
+    </g>
+    <!-- col 2 -->
+    <g transform="translate(460,112)">
+      <rect width="360" height="52" rx="6" fill="#101318" stroke="#1d232c"/>
+      <text class="mono num" x="14" y="21">05–06</text>
+      <text class="mono lbl" x="14" y="38">Data filter → TTL check</text>
+      <text class="mono desc" x="220" y="30">zero hardcoded</text>
+      <text class="mono desc" x="220" y="43">resources</text>
+    </g>
+    <g transform="translate(460,174)">
+      <rect width="360" height="52" rx="6" fill="#101318" stroke="#1d232c"/>
+      <text class="mono num" x="14" y="21">07–08</text>
+      <text class="mono lbl" x="14" y="38">Context packet → audit log</text>
+      <text class="mono desc" x="240" y="30">CCP v3.0,</text>
+      <text class="mono desc" x="240" y="43">tamper-detectable</text>
+    </g>
+    <g transform="translate(460,236)">
+      <rect width="360" height="52" rx="6" fill="#12160e" stroke="rgba(232,255,71,0.35)"/>
+      <text class="mono num accent" x="14" y="21">09</text>
+      <text class="mono lbl accent" x="14" y="38">Cross-query detection</text>
+      <text class="mono desc" x="240" y="30">multi-turn</text>
+      <text class="mono desc" x="240" y="43">accumulation</text>
+    </g>
+  </g>
+
+  <!-- connectors between columns -->
+  <path class="flowline" d="M420 138 L460 138"/><path class="arrowhead" d="M456 134 L456 142 L463 138 Z"/>
+  <path class="flowline" d="M420 200 L460 200"/><path class="arrowhead" d="M456 196 L456 204 L463 200 Z"/>
+  <path class="flowline" d="M420 262 L460 262"/><path class="arrowhead" d="M456 258 L456 266 L463 262 Z"/>
+  <path class="flowline" d="M240 164 L240 174"/>
+  <path class="flowline" d="M240 226 L240 236"/>
+  <path class="flowline" d="M640 164 L640 174"/>
+  <path class="flowline" d="M640 226 L640 236"/>
+
+  <!-- down to LLM -->
+  <path class="flowline" d="M440 288 L440 322"/><path class="arrowhead" d="M436 320 L444 320 L440 328 Z"/>
+  <text class="mono desc" x="452" y="312">filtered context only</text>
+
+  <!-- ══════════ LLM ══════════ -->
+  <g transform="translate(330,330)">
+    <rect width="220" height="58" rx="8" fill="#0d1014" stroke="#26303c" stroke-width="1.5"/>
+    <path d="M30 17 L46 26 L46 41 L30 50 L14 41 L14 26 Z" fill="none" stroke="#e8ff47" stroke-width="4" stroke-linejoin="round" class="pulse"/>
+    <text class="mono lbl" x="62" y="28">LLM CALL</text>
+    <text class="mono desc" x="62" y="44">Claude · sees only what policy allows</text>
+  </g>
+
+  <!-- down to output -->
+  <path class="flowline" d="M440 388 L440 422"/><path class="arrowhead" d="M436 420 L444 420 L440 428 Z"/>
+  <text class="mono desc" x="452" y="412">raw model response</text>
+
+  <!-- ══════════ OUTPUT SIDE ══════════ -->
+  <text class="mono head" x="60" y="452">OUTPUT GOVERNANCE — VERIFY BEFORE THE USER SEES IT</text>
+
+  <g transform="translate(60,466)">
+    <rect width="360" height="64" rx="6" fill="#160d0f" stroke="rgba(255,77,94,0.35)"/>
+    <text class="mono num" x="14" y="22" fill="#ff4d5e">10</text>
+    <text class="mono lbl" x="14" y="40" fill="#ffd9dd">Output scanner</text>
+    <text class="mono desc" x="150" y="26">leakage · hallucinated values</text>
+    <text class="mono desc" x="150" y="41">not in filtered context ·</text>
+    <text class="mono desc" x="150" y="56">SSN mask breaches</text>
+  </g>
+  <g transform="translate(460,466)">
+    <rect width="360" height="64" rx="6" fill="#101318" stroke="#1d232c"/>
+    <text class="mono num" x="14" y="22">11</text>
+    <text class="mono lbl" x="14" y="40">Sanitize</text>
+    <text class="mono desc" x="130" y="26">redact violations,</text>
+    <text class="mono desc" x="130" y="41">log every decision,</text>
+    <text class="mono desc" x="130" y="56">return clean response</text>
+  </g>
+  <path class="flowline" d="M420 498 L460 498"/><path class="arrowhead" d="M456 494 L456 502 L463 498 Z"/>
+
+  <!-- final -->
+  <path class="flowline" d="M640 530 L640 560"/><path class="arrowhead" d="M636 558 L644 558 L640 566 Z"/>
+  <text class="mono io" x="560" y="590">▸ SANITIZED RESPONSE → <tspan class="accent">USER</tspan></text>
+
+  <!-- footer -->
+  <text class="mono desc" x="60" y="590">Same PolicyDecision governs both directions.</text>
+  <text class="mono head" x="60" y="618">⬡ ARBITER — BIDIRECTIONAL ENFORCEMENT PIPELINE</text>
+</svg>

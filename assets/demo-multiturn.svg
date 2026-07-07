@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" role="img" aria-label="Arbiter cross-query detection: multi-turn attack blocked on turn 3">
+  <style>
+    .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+    text { fill: #c9d3dd; }
+    .bright { fill: #eef3f8; } .dim { fill: #5c6875; } .faint { fill: #38424e; }
+    .acid { fill: #e8ff47; } .red { fill: #ff4d5e; } .redlt { fill: #ffd9dd; }
+    .green { fill: #3ddc84; } .amber { fill: #ffb020; }
+    .h10 { font-size: 10px; letter-spacing: 0.18em; }
+    .h11 { font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
+    .t12 { font-size: 12px; } .t13 { font-size: 13px; }
+    .serif { font-family: Georgia, "Times New Roman", serif; font-size: 18px; }
+
+    .all { animation: master 26s linear infinite; }
+    @keyframes master { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+
+    .q1 { animation: q1 26s linear infinite; } @keyframes q1 { 0%,7.5% {opacity:0} 8%,100% {opacity:1} }
+    .a1 { animation: a1 26s linear infinite; } @keyframes a1 { 0%,15.5% {opacity:0} 16%,100% {opacity:1} }
+    .q2 { animation: q2 26s linear infinite; } @keyframes q2 { 0%,31.5% {opacity:0} 32%,100% {opacity:1} }
+    .a2 { animation: a2 26s linear infinite; } @keyframes a2 { 0%,39.5% {opacity:0} 40%,100% {opacity:1} }
+    .q3 { animation: q3 26s linear infinite; } @keyframes q3 { 0%,55.5% {opacity:0} 56%,100% {opacity:1} }
+    .a3 { animation: a3 26s linear infinite; } @keyframes a3 { 0%,63.5% {opacity:0} 64%,100% {opacity:1} }
+    .vfin { animation: vfin 26s linear infinite; } @keyframes vfin { 0%,79.5% {opacity:0} 80%,100% {opacity:1} }
+
+    .led1 { animation: a1 26s linear infinite; }
+    .led2 { animation: a2 26s linear infinite; }
+    .led3 { animation: led3 26s linear infinite; } @keyframes led3 { 0%,71.5% {opacity:0} 72%,100% {opacity:1} }
+
+    .pip1 { animation: pip1 26s linear infinite; }
+    @keyframes pip1 { 0%,17% { stroke:#26303c; fill:rgba(255,176,32,0); } 20%,100% { stroke:rgba(255,176,32,0.6); fill:rgba(255,176,32,0.1); } }
+    .pip1t { animation: pip1t 26s linear infinite; }
+    @keyframes pip1t { 0%,17% { fill:#38424e; } 20%,100% { fill:#ffb020; } }
+    .pip2 { animation: pip2 26s linear infinite; }
+    @keyframes pip2 { 0%,41% { stroke:#26303c; fill:rgba(255,176,32,0); } 44%,100% { stroke:rgba(255,176,32,0.6); fill:rgba(255,176,32,0.1); } }
+    .pip2t { animation: pip2t 26s linear infinite; }
+    @keyframes pip2t { 0%,41% { fill:#38424e; } 44%,100% { fill:#ffb020; } }
+    .pip3 { animation: pip3 26s linear infinite; }
+    @keyframes pip3 { 0%,63% { stroke:#26303c; fill:rgba(255,77,94,0); } 66%,100% { stroke:#ff4d5e; fill:rgba(255,77,94,0.15); } }
+    .pip3t { animation: pip3t 26s linear infinite; }
+    @keyframes pip3t { 0%,63% { fill:#38424e; } 66%,100% { fill:#ff4d5e; } }
+
+    .card { animation: card 26s linear infinite; }
+    @keyframes card {
+      0%,17%  { stroke:#1d232c; fill:#0d1014; }
+      20%,63% { stroke:rgba(255,176,32,0.45); fill:#0d1014; }
+      66%,100%{ stroke:rgba(255,77,94,0.6); fill:rgba(255,77,94,0.05); }
+    }
+    .st0 { animation: st0 26s linear infinite; } @keyframes st0 { 0%,19.5% {opacity:1} 20%,100% {opacity:0} }
+    .st1 { animation: st1 26s linear infinite; } @keyframes st1 { 0%,19.5% {opacity:0} 20%,43.5% {opacity:1} 44%,100% {opacity:0} }
+    .st2 { animation: st2 26s linear infinite; } @keyframes st2 { 0%,43.5% {opacity:0} 44%,65.5% {opacity:1} 66%,100% {opacity:0} }
+    .st3 { animation: st3 26s linear infinite; } @keyframes st3 { 0%,65.5% {opacity:0} 66%,100% {opacity:1} }
+  </style>
+
+  <rect width="880" height="560" rx="8" fill="#0a0c0f"/>
+
+  <g class="all">
+    <!-- header -->
+    <path d="M32 16 L44 23 L44 37 L32 44 L20 37 L20 23 Z" fill="none" stroke="#e8ff47" stroke-width="3.5" stroke-linejoin="round"/>
+    <rect x="28.5" y="26.5" width="7" height="7" fill="#e8ff47" transform="rotate(45 32 30)"/>
+    <text class="mono h11 bright" x="56" y="35">ARBI<tspan class="acid">TER</tspan></text>
+    <rect x="146" y="20" width="186" height="20" rx="3" fill="none" stroke="#1d232c"/>
+    <text class="mono h10 dim" x="156" y="34">CROSS-QUERY DETECTION</text>
+    <text class="mono t13 dim" x="856" y="34" text-anchor="end">role <tspan class="bright">teacher · Sarah Chen</tspan></text>
+    <line x1="0" y1="56" x2="880" y2="56" stroke="#1d232c"/>
+    <line x1="520" y1="56" x2="520" y2="560" stroke="#1d232c"/>
+
+    <!-- ═══ CHAT COLUMN ═══ -->
+    <!-- turn 1 -->
+    <g class="q1">
+      <text class="mono h10 dim" x="496" y="86" text-anchor="end">TEACHER · TURN 1</text>
+      <rect x="216" y="94" width="280" height="30" rx="6" fill="#161b22" stroke="#232b36"/>
+      <text class="mono t13 bright" x="232" y="114">What is the CS research budget?</text>
+    </g>
+    <g class="a1">
+      <rect x="24" y="136" width="330" height="30" rx="6" fill="#0d1014" stroke="#1d232c"/>
+      <text class="mono t13" x="38" y="156">Research budget: <tspan class="bright" font-weight="700">$141,500</tspan> · 6 grants</text>
+    </g>
+
+    <!-- turn 2 -->
+    <g class="q2">
+      <text class="mono h10 dim" x="496" y="196" text-anchor="end">TEACHER · TURN 2</text>
+      <rect x="266" y="204" width="230" height="30" rx="6" fill="#161b22" stroke="#232b36"/>
+      <text class="mono t13 bright" x="282" y="224">And the TA stipend pool?</text>
+    </g>
+    <g class="a2">
+      <rect x="24" y="246" width="316" height="30" rx="6" fill="#0d1014" stroke="#1d232c"/>
+      <text class="mono t13" x="38" y="266">TA stipend pool: <tspan class="bright" font-weight="700">$63,200</tspan> · 11 TAs</text>
+    </g>
+
+    <!-- turn 3 -->
+    <g class="q3">
+      <text class="mono h10 dim" x="496" y="306" text-anchor="end">TEACHER · TURN 3</text>
+      <rect x="222" y="314" width="274" height="30" rx="6" fill="#161b22" stroke="#232b36"/>
+      <text class="mono t13 bright" x="238" y="334">What about the operating budget?</text>
+    </g>
+    <g class="a3">
+      <rect x="24" y="356" width="472" height="104" rx="6" fill="rgba(255,77,94,0.05)" stroke="rgba(255,77,94,0.45)"/>
+      <rect x="38" y="370" width="150" height="20" rx="3" fill="#ff4d5e"/>
+      <text class="mono t12" x="113" y="384" text-anchor="middle" fill="#0a0c0f" font-weight="800">█ BLOCKED — CQ-001</text>
+      <text class="mono t12 redlt" x="38" y="412">Combined with the research budget and TA pool from</text>
+      <text class="mono t12 redlt" x="38" y="430">this session, this would reconstruct the withheld</text>
+      <text class="mono t12 redlt" x="38" y="448">total ($283,000) — which enables salary derivation.</text>
+    </g>
+
+    <!-- verdict -->
+    <g class="vfin">
+      <rect x="24" y="482" width="472" height="56" rx="6" fill="#0e1216" stroke="rgba(255,77,94,0.5)"/>
+      <rect x="24" y="482" width="3" height="56" fill="#ff4d5e"/>
+      <text class="serif" x="42" y="506"><tspan class="red">Turn 3: blocked.</tspan> <tspan class="bright">Each query passed alone.</tspan></text>
+      <text class="mono h10 dim" x="42" y="528">THE PATTERN DIDN’T · CQ-001 · LOGGED</text>
+    </g>
+
+    <!-- ═══ ACCUMULATOR RAIL ═══ -->
+    <text class="serif bright" x="548" y="94">Session accumulator</text>
+    <text class="mono h10 dim" x="856" y="94" text-anchor="end">SESS #B31D</text>
+
+    <rect class="card" x="548" y="112" width="308" height="150" rx="8" stroke-width="1.5"/>
+    <text class="mono h10 dim" x="566" y="140">RULE CQ-001</text>
+    <text class="mono t12 bright" x="566" y="162">Budget components across queries</text>
+    <text class="mono t12 bright" x="566" y="179">→ withheld total budget</text>
+
+    <rect class="pip1" x="566" y="194" width="86" height="28" rx="4" stroke-width="1.2"/>
+    <text class="mono h10 pip1t" x="609" y="212" text-anchor="middle">RESEARCH</text>
+    <rect class="pip2" x="660" y="194" width="86" height="28" rx="4" stroke-width="1.2"/>
+    <text class="mono h10 pip2t" x="703" y="212" text-anchor="middle">TA POOL</text>
+    <rect class="pip3" x="754" y="194" width="86" height="28" rx="4" stroke-width="1.2"/>
+    <text class="mono h10 pip3t" x="797" y="212" text-anchor="middle">OPERATING</text>
+
+    <text class="mono h10 faint st0" x="566" y="246">IDLE · 0 / 3 COMPONENTS</text>
+    <text class="mono h10 amber st1" x="566" y="246">WATCH · 1 / 3 COMPONENTS</text>
+    <text class="mono h10 amber st2" x="566" y="246">WATCH · 2 / 3 COMPONENTS</text>
+    <text class="mono h10 red st3" x="566" y="246">FIRED · DERIVATION CHAIN DETECTED</text>
+
+    <!-- ledger -->
+    <text class="mono h10 dim" x="548" y="296">REVEALED THIS SESSION</text>
+    <g class="led1">
+      <text class="mono t12" x="548" y="322">CS research budget</text>
+      <text class="mono t12 amber" x="856" y="322" text-anchor="end">$141,500</text>
+      <line x1="548" y1="332" x2="856" y2="332" stroke="#1d232c"/>
+    </g>
+    <g class="led2">
+      <text class="mono t12" x="548" y="356">CS TA stipend pool</text>
+      <text class="mono t12 amber" x="856" y="356" text-anchor="end">$63,200</text>
+      <line x1="548" y1="366" x2="856" y2="366" stroke="#1d232c"/>
+    </g>
+    <g class="led3">
+      <text class="mono t12 red" x="548" y="392">Σ reconstruction target</text>
+      <text class="mono t12 red" x="856" y="392" text-anchor="end" font-weight="800">$283,000 — BLOCKED</text>
+    </g>
+  </g>
+</svg>

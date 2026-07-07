@@ -99,7 +99,7 @@ class _ConsoleTarget(logging.Handler):
             event_type = entry.get("event_type", "INPUT")
 
             print(f"\n{sep}")
-            print(f"  AUDIT [{event_type}] — {entry['trace_id']}")
+            print(f"  AUDIT [{event_type}] - {entry['trace_id']}")
             print(sep)
             print(f"  Tenant    : {entry.get('tenant_id', 'N/A')}")
             print(f"  Timestamp : {entry['timestamp']}")
@@ -118,15 +118,15 @@ class _ConsoleTarget(logging.Handler):
             if channels:
                 print(f"  Inference : {len(channels)} channel(s) blocked")
                 for ch in channels:
-                    print(f"    → {ch.get('channel_id', '?')}: {ch.get('name', '?')} [{ch.get('severity', '?')}]")
+                    print(f"    -> {ch.get('channel_id', '?')}: {ch.get('name', '?')} [{ch.get('severity', '?')}]")
 
             # Output governance
             violations = entry.get("output_violations", [])
             if violations:
                 out_decision = entry.get("output_decision", "unknown")
-                print(f"  Output    : {out_decision} — {len(violations)} violation(s)")
+                print(f"  Output    : {out_decision} - {len(violations)} violation(s)")
                 for v in violations:
-                    print(f"    → [{v.get('type', '?')}] {v.get('description', '?')}")
+                    print(f"    -> [{v.get('type', '?')}] {v.get('description', '?')}")
 
             print(sep)
         except Exception:
