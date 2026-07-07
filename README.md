@@ -222,6 +222,4 @@ Python + FastAPI + Uvicorn on the backend, Claude via the Anthropic API, JSON-dr
 
 **⬡ Control what AI sees. Verify what AI says.**
 
-MIT License · Built at HackPSU Spring 2026
-
 </div>
