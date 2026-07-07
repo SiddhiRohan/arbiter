@@ -14,11 +14,11 @@
 
 Arbiter is bidirectional AI governance middleware. It enforces access control before the LLM sees data, detects causal inference channels that leak denied information through authorized field combinations, catches multi-turn accumulation attacks across conversation turns, and scans the model's response for hallucinated or leaked restricted data before it reaches the user.
 
-Built for FERPA and HIPAA contexts, where unauthorized AI data access isn't a bug — it's a violation.
+Built for FERPA and HIPAA contexts, where unauthorized AI data access isn't a bug - it's a violation.
 
 ## See it run
 
-Same model, same question — *"Show me all financial records"* — asked by a student. The left side has the full database in context. The right side goes through Arbiter.
+Same model, same question - *"Show me all financial records"* , asked by a student. The left side has the full database in context. The right side goes through Arbiter.
 
 ![Ungoverned vs governed, side by side](assets/demo-splitscreen.svg)
 
@@ -76,7 +76,7 @@ python -m uvicorn main:app --reload --port 8000
 Optional: create `server/.env` with `ANTHROPIC_API_KEY=your-key` for live AI responses. Without it, the full governance pipeline still runs in demo mode.
 
 <details>
-<summary><b>Demo credentials</b> — 7 logins across 5 roles</summary>
+<summary><b>Demo credentials</b> - 7 logins across 5 roles</summary>
 <br>
 
 | Username | Role | Person | Clearance |
